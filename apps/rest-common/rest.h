@@ -4,6 +4,7 @@
 /*includes*/
 #include "contiki.h"
 #include "contiki-lib.h"
+#include "contiki-conf.h"
 
 #ifdef WITH_COAP
   #include "coap-common.h"

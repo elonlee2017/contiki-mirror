@@ -66,7 +66,7 @@ static uip_ipaddr_t tmp_ipaddr;
 
 /*---------------------------------------------------------------------------*/
 void
-uip_icmp6_echo_request_input(void)
+uip_icmp6_echo_request_input(u8_t uip_if_id)
 {
   /*
    * we send an echo reply. It is trivial if there was no extension
@@ -80,11 +80,11 @@ uip_icmp6_echo_request_input(void)
   PRINTF("\n");
   
   /* IP header */
-  UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
+  UIP_IP_BUF->ttl = uip_ds6_if[uip_if_id].cur_hop_limit;
 
   if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)){
     uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
-    uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+    uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr, uip_if_id);
   } else {
     uip_ipaddr_copy(&tmp_ipaddr, &UIP_IP_BUF->srcipaddr);
     uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
@@ -126,7 +126,7 @@ uip_icmp6_echo_request_input(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-uip_icmp6_error_output(u8_t type, u8_t code, u32_t param) {
+uip_icmp6_error_output(u8_t type, u8_t code, u32_t param, u8_t uip_if_id) {
   uip_ext_len = 0;
 
  /* check if originating packet is not an ICMP error*/
@@ -150,7 +150,7 @@ uip_icmp6_error_output(u8_t type, u8_t code, u32_t param) {
   UIP_IP_BUF->tcflow = 0;
   UIP_IP_BUF->flow = 0;
   UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
-  UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
+  UIP_IP_BUF->ttl = uip_ds6_if[uip_if_id].cur_hop_limit;
 
   /* the source should not be unspecified nor multicast, the check for
      multicast is done in uip_process */
@@ -163,7 +163,7 @@ uip_icmp6_error_output(u8_t type, u8_t code, u32_t param) {
 
   if(uip_is_addr_mcast(&tmp_ipaddr)){
     if(type == ICMP6_PARAM_PROB && code == ICMP6_PARAMPROB_OPTION){
-      uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr);
+      uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr, uip_if_id);
     } else {
       uip_len = 0;
       return;
@@ -171,7 +171,7 @@ uip_icmp6_error_output(u8_t type, u8_t code, u32_t param) {
   } else {
 #if UIP_CONF_ROUTER
     /* need to pick a source that corresponds to this node */
-    uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr);
+    uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr, uip_if_id);
 #else
     uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr);
 #endif
@@ -197,19 +197,19 @@ uip_icmp6_error_output(u8_t type, u8_t code, u32_t param) {
 
 /*---------------------------------------------------------------------------*/
 void
-uip_icmp6_send(uip_ipaddr_t *dest, int type, int code, int payload_len)
+uip_icmp6_send(uip_ipaddr_t *dest, int type, int code, int payload_len, u8_t uip_if_id)
 {
 
   UIP_IP_BUF->vtc = 0x60;
   UIP_IP_BUF->tcflow = 0;
   UIP_IP_BUF->flow = 0;
   UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
-  UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
+  UIP_IP_BUF->ttl = uip_ds6_if[uip_if_id].cur_hop_limit;
   UIP_IP_BUF->len[0] = (UIP_ICMPH_LEN + payload_len) >> 8;
   UIP_IP_BUF->len[1] = (UIP_ICMPH_LEN + payload_len) & 0xff;
 
   memcpy(&UIP_IP_BUF->destipaddr, dest, sizeof(*dest));
-  uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+  uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr, uip_if_id);
 
   UIP_ICMP_BUF->type = type;
   UIP_ICMP_BUF->icode = code;

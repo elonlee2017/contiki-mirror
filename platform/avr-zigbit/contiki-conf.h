@@ -42,6 +42,10 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#ifdef PROJECT_CONF_H
+#include "project-conf.h"
+#endif /* PROJECT_CONF_H */
+
 /* MCU and clock rate */
 #define PLATFORM PLATFORM_AVR
 #define HARWARE_REVISION ZIGBIT
@@ -56,7 +60,7 @@
 #define INFINITE_TIME 0xffff
 
 /* COM port to be used for SLIP connection */
-#define SLIP_PORT RS232_PORT_0
+#define SLIP_PORT RS232_PORT_1
 
 /* Pre-allocated memory for loadable modules heap space (in bytes)*/
 #define MMEM_CONF_SIZE 256
@@ -77,6 +81,7 @@
 #define UIP_CONF_ICMP6           1
 #define UIP_CONF_UDP             1
 #define UIP_CONF_TCP             1
+#define UIP_CONF_IPV6_RPL        1
 #endif
 
 /* The new NETSTACK interface requires RF230BB */
@@ -133,14 +138,58 @@
 #define UIP_CONF_FWCACHE_SIZE    0
 
 #define UIP_CONF_IPV6_CHECKS     1
-#define UIP_CONF_IPV6_QUEUE_PKT  0 
+#define UIP_CONF_IPV6_QUEUE_PKT  0
 #define UIP_CONF_IPV6_REASSEMBLY 0
-#define UIP_CONF_NETIF_MAX_ADDRESSES  3
-#define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_NEIGHBORS    4  
-#define UIP_CONF_ND6_MAX_DEFROUTERS   2
+/* See uip-ds6.h */
+#define UIP_CONF_DS6_NBR_NBU      2
+#define UIP_CONF_DS6_DEFRT_NBU    2
+#define UIP_CONF_DS6_PREFIX_NBU   2
+#define UIP_CONF_DS6_ROUTE_NBU    2
+#define UIP_CONF_DS6_ADDR_NBU     2
+#define UIP_CONF_DS6_MADDR_NBU    0
+#define UIP_CONF_DS6_AADDR_NBU    0
+
+/* multiple intrfaces configuration*/
+#define UIP_CONF_DS6_IF_NBU       2
+#define UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_0 8
+#if UIP_CONF_DS6_IF_NBU > 1
+#define UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_1 6
+#endif
+
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_TCP_SPLIT       1
+
+#if UIP_CONF_IPV6_RPL
+
+/* Define MAX_*X_POWER to reduce tx power and ignore weak rx packets for testing a miniature multihop network.
+ * Leave undefined for full power and sensitivity.
+ * tx=0 (3dbm, default) to 15 (-17.2dbm)
+ * RF230_CONF_AUTOACK sets the extended mode using the energy-detect register with rx=0 (-91dBm) to 84 (-7dBm)
+ *   else the rssi register is used having range 0 (91dBm) to 28 (-10dBm)
+ *   For simplicity RF230_MIN_RX_POWER is based on the energy-detect value and divided by 3 when autoack is not set.
+ * On the RF230 a reduced rx power threshold will not prevent autoack if enabled and requested.
+ * These numbers applied to both Raven and Jackdaw give a maximum communication distance of about 15 cm
+ * and a 10 meter range to a full-sensitivity RF230 sniffer.
+#define RF230_MAX_TX_POWER 15
+#define RF230_MIN_RX_POWER 30
+ */
+
+#define UIP_CONF_ROUTER                 1
+#define UIP_CONF_PICK_UP_RA             1   //ONLY FROM FALLBACK INTERFACE
+#define UIP_CONF_ND6_SEND_RA		    0
+#define UIP_CONF_ND6_REACHABLE_TIME     600000
+#define UIP_CONF_ND6_RETRANS_TIMER      10000
+
+#undef UIP_CONF_UDP_CONNS
+#define UIP_CONF_UDP_CONNS       12
+#undef UIP_CONF_FWCACHE_SIZE
+#define UIP_CONF_FWCACHE_SIZE    30
+#define UIP_CONF_BROADCAST       1
+#define UIP_ARCH_IPCHKSUM        1
+#define UIP_CONF_PINGADDRCONF    0
+#define UIP_CONF_LOGGING         1
+
+#endif /* RPL */
 
 
 #include <stdint.h>

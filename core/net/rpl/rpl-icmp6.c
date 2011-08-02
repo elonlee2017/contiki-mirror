@@ -81,11 +81,11 @@ get_global_addr(uip_ipaddr_t *addr)
   int state;
 
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
-    state = uip_ds6_if.addr_list[i].state;
-    if(uip_ds6_if.addr_list[i].isused &&
+    state = uip_ds6_if[IF_RADIO].addr_list[i].state;
+    if(uip_ds6_if[IF_RADIO].addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      if(!uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)) {
-        memcpy(addr, &uip_ds6_if.addr_list[i].ipaddr, sizeof(uip_ipaddr_t));
+      if(!uip_is_addr_link_local(&uip_ds6_if[IF_RADIO].addr_list[i].ipaddr)) {
+        memcpy(addr, &uip_ds6_if[IF_RADIO].addr_list[i].ipaddr, sizeof(uip_ipaddr_t));
         return 1;
       }
     }
@@ -154,7 +154,7 @@ dis_output(uip_ipaddr_t *addr)
   } else {
     PRINTF("RPL: Sending a unicast DIS\n");
   }
-  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 2);
+  uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 2, IF_RADIO);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -180,10 +180,10 @@ dio_input(void)
   PRINT6ADDR(&from);
   PRINTF("\n");
 
-  if((nbr = uip_ds6_nbr_lookup(&from)) == NULL) {
+  if((nbr = uip_ds6_nbr_lookup(&from, IF_RADIO)) == NULL) {
     if((nbr = uip_ds6_nbr_add(&from, (uip_lladdr_t *)
                               packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                              0, NBR_REACHABLE)) != NULL) {
+                              0, NBR_REACHABLE,IF_RADIO)) != NULL) {
       /* set reachable timer */
       stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
       PRINTF("RPL: Neighbor added to neighbor cache ");
@@ -445,13 +445,13 @@ dio_output(rpl_dag_t *dag, uip_ipaddr_t *uc_addr)
     PRINTF("RPL: Sending a multicast-DIO with rank %u\n",
         (unsigned)dag->rank);
     uip_create_linklocal_rplnodes_mcast(&addr);
-    uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DIO, pos);
+    uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DIO, pos, IF_RADIO);
   } else {
     PRINTF("RPL: Sending unicast-DIO with rank %u to ",
         (unsigned)dag->rank);
     PRINT6ADDR(uc_addr);
     PRINTF("\n");
-    uip_icmp6_send(uc_addr, ICMP6_RPL, RPL_CODE_DIO, pos);
+    uip_icmp6_send(uc_addr, ICMP6_RPL, RPL_CODE_DIO, pos, IF_RADIO);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -548,7 +548,7 @@ dao_input(void)
 
   if(lifetime == ZERO_LIFETIME) {
     /* No-Path DAO received; invoke the route purging routine. */
-    rep = uip_ds6_route_lookup(&prefix);
+    rep = uip_ds6_route_lookup(&prefix, IF_RADIO);
     if(rep != NULL && rep->state.saved_lifetime == 0) {
       PRINTF("RPL: Setting expiration timer for prefix ");
       PRINT6ADDR(&prefix);
@@ -593,8 +593,9 @@ dao_input(void)
       PRINT6ADDR(&dag->preferred_parent->addr);
       PRINTF("\n");
       uip_icmp6_send(&dag->preferred_parent->addr,
-                     ICMP6_RPL, RPL_CODE_DAO, buffer_length);
+                     ICMP6_RPL, RPL_CODE_DAO, buffer_length, IF_RADIO);
     } else if(flags & RPL_DAO_K_FLAG) {
+    	uip_last_interface_active = IF_RADIO;
       dao_ack_output(dag, &dao_sender_addr, sequence);
     }
   }
@@ -673,7 +674,7 @@ dao_output(rpl_parent_t *n, uint32_t lifetime)
   }
   PRINTF("\n");
 
-  uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DAO, pos);
+  uip_icmp6_send(&addr, ICMP6_RPL, RPL_CODE_DAO, pos, IF_RADIO);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -714,7 +715,7 @@ dao_ack_output(rpl_dag_t *dag, uip_ipaddr_t *dest, uint8_t sequence)
   buffer[2] = sequence;
   buffer[3] = 0;
 
-  uip_icmp6_send(dest, ICMP6_RPL, RPL_CODE_DAO_ACK, 4);
+  uip_icmp6_send(dest, ICMP6_RPL, RPL_CODE_DAO_ACK, 4, IF_RADIO);
 }
 /*---------------------------------------------------------------------------*/
 void

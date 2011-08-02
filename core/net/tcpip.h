@@ -227,7 +227,7 @@ void udp_attach(struct uip_udp_conn *conn,
  * memory could not be allocated for the connection.
  */
 CCIF struct uip_udp_conn *udp_new(const uip_ipaddr_t *ripaddr, u16_t port,
-				  void *appstate);
+				  void *appstate, u8_t uip_if);
 
 /**
  * Create a new UDP broadcast connection.
@@ -241,7 +241,7 @@ CCIF struct uip_udp_conn *udp_new(const uip_ipaddr_t *ripaddr, u16_t port,
  * \return A pointer to the newly created connection, or NULL if
  * memory could not be allocated for the connection.
  */
-struct uip_udp_conn *udp_broadcast_new(u16_t port, void *appstate);
+struct uip_udp_conn *udp_broadcast_new(u16_t port, void *appstate, u8_t uip_if_id);
 
 /**
  * Bind a UDP connection to a local port.
@@ -341,11 +341,11 @@ CCIF void tcpip_input(void);
  * The eventual parameter is the MAC address of the destination.
  */
 #if UIP_CONF_IPV6
-u8_t tcpip_output(uip_lladdr_t *);
-void tcpip_set_outputfunc(u8_t (* f)(uip_lladdr_t *));
+u8_t tcpip_output(u8_t uip_if_id, uip_lladdr_t *);
+void tcpip_set_outputfunc(u8_t uip_if_id, u8_t (* f)(uip_lladdr_t *));
 #else
-u8_t tcpip_output(void);
-void tcpip_set_outputfunc(u8_t (* f)(void));
+u8_t tcpip_output(u8_t uip_if_id);
+void tcpip_set_outputfunc(u8_t uip_if_id, u8_t (* f)(void));
 #endif
 
 /**

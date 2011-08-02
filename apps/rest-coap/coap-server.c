@@ -501,7 +501,7 @@ PROCESS_THREAD(coap_server, ev, data)
   resource_changed_event = process_alloc_event();
 
   /* new connection with remote host */
-  server_conn = udp_new(NULL, uip_htons(0), NULL);
+  server_conn = udp_new(NULL, uip_htons(0), NULL, IF_RADIO);
   udp_bind(server_conn, uip_htons(MOTE_SERVER_LISTEN_PORT));
   PRINTF("Local/remote port %u/%u\n", uip_htons(server_conn->lport), uip_htons(server_conn->rport));
 
@@ -527,7 +527,7 @@ PROCESS_THREAD(coap_server, ev, data)
 
         if (!resource->client_conn) {
           /*FIXME send port is fixed for now to 61616*/
-          resource->client_conn = udp_new(&resource->addr, uip_htons(61616), NULL);
+          resource->client_conn = udp_new(&resource->addr, uip_htons(61616), NULL, IF_RADIO);
           udp_bind(resource->client_conn, uip_htons(MOTE_CLIENT_LISTEN_PORT));
         }
 

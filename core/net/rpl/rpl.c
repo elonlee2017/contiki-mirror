@@ -45,7 +45,7 @@
 #include "net/rpl/rpl-private.h"
 #include "net/neighbor-info.h"
 
-#define DEBUG DEBUG_NONE
+#define DEBUG 0
 #include "net/uip-debug.h"
 
 #include <limits.h>
@@ -66,7 +66,7 @@ rpl_purge_routes(void)
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(uip_ds6_routing_table[i].isused) {
       if(uip_ds6_routing_table[i].state.lifetime <= 1) {
-        uip_ds6_route_rm(&uip_ds6_routing_table[i]);
+        uip_ds6_route_rm(&uip_ds6_routing_table[i], IF_RADIO);
       } else {
         uip_ds6_routing_table[i].state.lifetime--;
       }
@@ -81,7 +81,7 @@ rpl_remove_routes(rpl_dag_t *dag)
 
   for(i = 0; i < UIP_DS6_ROUTE_NB; i++) {
     if(uip_ds6_routing_table[i].state.dag == dag) {
-      uip_ds6_route_rm(&uip_ds6_routing_table[i]);
+      uip_ds6_route_rm(&uip_ds6_routing_table[i], IF_RADIO);
     }
   }
 }
@@ -92,9 +92,9 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 {
   uip_ds6_route_t *rep;
 
-  rep = uip_ds6_route_lookup(prefix);
+  rep = uip_ds6_route_lookup(prefix, IF_RADIO);
   if(rep == NULL) {
-    if((rep = uip_ds6_route_add(prefix, prefix_len, next_hop, 0)) == NULL) {
+    if((rep = uip_ds6_route_add(prefix, prefix_len, next_hop, 0, IF_RADIO)) == NULL) {
       PRINTF("RPL: No space for more route entries\n");
       return NULL;
     }
@@ -127,7 +127,7 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
   rpl_parent_t *parent;
 
   uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_set_addr_iid(&ipaddr, (uip_lladdr_t *)addr);
+  uip_ds6_set_addr_iid(&ipaddr, (uip_lladdr_t *)addr, uip_ds6_if[IF_RADIO].lladdr_len);
   PRINTF("RPL: Neighbor ");
   PRINT6ADDR(&ipaddr);
   PRINTF(" is %sknown. ETX = %u\n", known ? "" : "no longer ", NEIGHBOR_INFO_FIX2ETX(etx));
@@ -143,7 +143,7 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
       PRINTF("RPL: Deleting routes installed by DAOs received from ");
       PRINT6ADDR(&ipaddr);
       PRINTF("\n");
-      uip_ds6_route_rm_by_nexthop(&ipaddr);
+      uip_ds6_route_rm_by_nexthop(&ipaddr, IF_RADIO);
     }
     return;
   }
@@ -207,7 +207,7 @@ rpl_init(void)
 
   /* add rpl multicast address */
   uip_create_linklocal_rplnodes_mcast(&rplmaddr);
-  uip_ds6_maddr_add(&rplmaddr);
+  uip_ds6_maddr_add(&rplmaddr, IF_RADIO);
 
 #if RPL_CONF_STATS
   memset(&rpl_stats, 0, sizeof(rpl_stats));

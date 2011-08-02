@@ -106,12 +106,12 @@ void
 raven_ping6(void)
 {
 #define PING_GOOGLE 0
-
+#define MULTIPLE_INTERFACES_TEST_PING_PC 1
     UIP_IP_BUF->vtc = 0x60;
     UIP_IP_BUF->tcflow = 1;
     UIP_IP_BUF->flow = 0;
     UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
-	UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
+	UIP_IP_BUF->ttl = uip_ds6_if[IF_RADIO].cur_hop_limit;
 #if PING_GOOGLE
     if (seqno==1) {
 	   uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, uip_ds6_defrt_choose());   //the default router
@@ -123,11 +123,13 @@ raven_ping6(void)
 //	   uip_ip6addr(&UIP_IP_BUF->destipaddr,0x2001,0x0420,0x5FFF,0x007D,0x02D0,0xB7FF,0xFE23,0xE6DB);  //?.cisco.com
 	   uip_ip6addr(&UIP_IP_BUF->destipaddr,0x2001,0x0420,0x0000,0x0010,0x0250,0x8bff,0xfee8,0xf800);  //six.cisco.com
 	}	
+#elif MULTIPLE_INTERFACES_TEST_PING_PC
+    uip_ip6addr(&UIP_IP_BUF->destipaddr,0xaaaa,0x0000,0x0000,0x0000,0x021e,0x33ff,0xfeae,0x63a8);
 #else
-	  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, uip_ds6_defrt_choose());    //the default router
+	  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, uip_ds6_defrt_choose(IF_RADIO));    //the default router
 #endif
 
-    uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+    uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr,IF_RADIO);
     UIP_ICMP_BUF->type = ICMP6_ECHO_REQUEST;
     UIP_ICMP_BUF->icode = 0;
     /* set identifier and sequence number to 0 */

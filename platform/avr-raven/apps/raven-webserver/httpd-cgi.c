@@ -294,7 +294,7 @@ static const char httpd_cgi_addrb[] HTTPD_STRING_ATTR = "<br>";
 static const char httpd_cgi_addrn[] HTTPD_STRING_ATTR = "(none)<br>";
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
-extern uip_ds6_netif_t uip_ds6_if;
+extern uip_ds6_netif_t uip_ds6_if[UIP_DS6_IF_NB];
 
 static unsigned short
 make_addresses(void *p)
@@ -303,9 +303,9 @@ uint8_t i,j=0;
 uint16_t numprinted;
   numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(),httpd_cgi_addrh);
   for (i=0; i<UIP_DS6_ADDR_NB;i++) {
-    if (uip_ds6_if.addr_list[i].isused) {
+    if (uip_ds6_if[IF_RADIO].addr_list[i].isused) {
       j++;
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_if[IF_RADIO].addr_list[i].ipaddr, uip_appdata + numprinted);
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_addrb); 
     }
   }

@@ -130,7 +130,7 @@ extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via mak
 extern uint8_t server_name[16];
 extern uint8_t domain_name[30];
 #else
-uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
+uint8_t mac_address[8] EEMEM = {0x02, 0x01, 0x00, 0x02, 0x00, 0x03, 0x00, 0x04};
 #endif
 
 
@@ -250,7 +250,7 @@ uint8_t i;
   get_mac_from_eeprom(addr.u8);
  
 #if UIP_CONF_IPV6 
-  memcpy(&uip_lladdr.addr, &addr.u8, 8);
+  memcpy(&uip_lladdr[IF_RADIO].addr, &addr.u8, 8);
 #endif  
   rf230_set_pan_addr(
 	get_panid_from_eeprom(),
@@ -346,8 +346,8 @@ uint8_t i;
   unsigned int size;
 
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
-	if (uip_ds6_if.addr_list[i].isused) {	  
-	   httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr,buf);
+	if (uip_ds6_if[IF_RADIO].addr_list[i].isused) {
+	   httpd_cgi_sprint_ip6(uip_ds6_if[IF_RADIO].addr_list[i].ipaddr,buf);
        PRINTF("IPv6 Address: %s\n",buf);
 	}
   }

@@ -81,6 +81,8 @@ typedef uip_ip4addr_t uip_ipaddr_t;
 
 /*---------------------------------------------------------------------------*/
 
+#define UIP_MAX_LLADDR_LEN 8
+
 /** \brief 16 bit 802.15.4 address */
 typedef struct uip_802154_shortaddr {
   u8_t addr[2];
@@ -100,6 +102,23 @@ typedef struct uip_eth_addr {
   u8_t addr[6];
 } uip_eth_addr;
 
+/* Interfaces list */
+#define UIP_DS6_IF_NBS 0
+#ifndef UIP_CONF_DS6_IF_NBU
+#define UIP_DS6_IF_NBU  2
+#else
+#define UIP_DS6_IF_NBU UIP_CONF_DS6_IF_NBU
+#endif
+#define UIP_DS6_IF_NB UIP_DS6_IF_NBS + UIP_DS6_IF_NBU
+
+/*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ * DESIGN CONSIDERATIONS (MW)
+ * Hard-coded interface identifiers - these are necessary
+ * until some external configuration file is developed.
+ * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ */
+#define IF_RADIO 0
+#define IF_FALLBACK 1
 
 #if UIP_CONF_LL_802154
 /** \brief 802.15.4 address */
@@ -828,7 +847,7 @@ CCIF void uip_send(const void *data, int len);
  * \return The uip_udp_conn structure for the new connection or NULL
  * if no connection could be allocated.
  */
-struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport);
+struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport, u8_t uip_if_id);
 
 /**
  * Removed a UDP connection.
@@ -1362,10 +1381,10 @@ struct uip_udp_conn {
 extern struct uip_udp_conn *uip_udp_conn;
 extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 
-struct uip_fallback_interface {
-  void (*init)(void);
-  void (*output)(void);
-};
+//struct uip_fallback_interface {
+//  void (*init)(void);
+//  void (*output)(void);
+//};
 
 #if UIP_CONF_ICMP6
 struct uip_icmp6_conn {
@@ -1913,7 +1932,7 @@ CCIF extern const uip_ipaddr_t uip_all_zeroes_addr;
 #if UIP_FIXEDETHADDR
 CCIF extern const uip_lladdr_t uip_lladdr;
 #else
-CCIF extern uip_lladdr_t uip_lladdr;
+CCIF extern uip_lladdr_t uip_lladdr[UIP_DS6_IF_NB];
 #endif
 
 
@@ -2173,6 +2192,9 @@ u16_t uip_udpchksum(void);
  * \return The ICMP checksum of the ICMP packet in uip_buf
  */
 u16_t uip_icmp6chksum(void);
+
+/* Last interface active - for proper LLAO construction */
+u8_t uip_last_interface_active;
 
 
 #endif /* __UIP_H__ */

@@ -100,7 +100,7 @@ unsigned long clock_seconds(void);
 #define UIP_CONF_ICMP6            1
 #define UIP_CONF_UDP              1
 #define UIP_CONF_TCP              1
-#define UIP_CONF_IPV6_RPL         0
+#define UIP_CONF_IPV6_RPL         1
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else
@@ -117,6 +117,13 @@ unsigned long clock_seconds(void);
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0
+
+/* multiple intrfaces configuration*/
+#define UIP_CONF_DS6_IF_NBU       1
+#define UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_0 8
+#if UIP_CONF_DS6_IF_NBU > 1
+#define UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_1 6
+#endif
 
 #define UIP_CONF_LL_802154       1
 #define UIP_CONF_LLH_LEN         0

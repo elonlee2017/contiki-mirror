@@ -239,9 +239,9 @@ rpl_set_default_route(rpl_dag_t *dag, uip_ipaddr_t *from)
     PRINT6ADDR(from);
     PRINTF("\n");
     if(DEFAULT_ROUTE_LIFETIME == INFINITE_LIFETIME) {
-      dag->def_route = uip_ds6_defrt_add(from, 0);
+      dag->def_route = uip_ds6_defrt_add(from, 0, IF_RADIO);
     } else {
-      dag->def_route = uip_ds6_defrt_add(from, DEFAULT_ROUTE_LIFETIME);
+      dag->def_route = uip_ds6_defrt_add(from, DEFAULT_ROUTE_LIFETIME, IF_RADIO);
     }
     if(dag->def_route == NULL) {
       return 0;
@@ -380,6 +380,7 @@ rpl_select_parent(rpl_dag_t *dag)
     dag->min_rank = dag->rank;
   } else if(!acceptable_rank(dag, best->rank)) {
     /* Send a No-Path DAO to the soon-to-be-removed preferred parent. */
+    uip_last_interface_active = IF_RADIO;
     dao_output(best, ZERO_LIFETIME);
 
     remove_parents(dag, 0);
@@ -395,8 +396,8 @@ rpl_remove_parent(rpl_dag_t *dag, rpl_parent_t *parent)
   uip_ds6_defrt_t *defrt;
 
   /* Remove uIPv6 routes that have this parent as the next hop. **/
-  uip_ds6_route_rm_by_nexthop(&parent->addr);
-  defrt = uip_ds6_defrt_lookup(&parent->addr);
+  uip_ds6_route_rm_by_nexthop(&parent->addr, IF_RADIO);
+  defrt = uip_ds6_defrt_lookup(&parent->addr, IF_RADIO);
   if(defrt != NULL) {
     PRINTF("RPL: Removing default route ");
     PRINT6ADDR(&parent->addr);
@@ -486,12 +487,12 @@ join_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
     uip_ipaddr_t ipaddr;
     /* assume that the prefix ends with zeros! */
     memcpy(&ipaddr, &dio->prefix_info.prefix, 16);
-    uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-    if(uip_ds6_addr_lookup(&ipaddr) == NULL) {
+    uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr[IF_RADIO], uip_ds6_if[IF_RADIO].lladdr_len);
+    if(uip_ds6_addr_lookup(&ipaddr, IF_RADIO) == NULL) {
       PRINTF("RPL: adding global IP address ");
       PRINT6ADDR(&ipaddr);
       PRINTF("\n");
-      uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+      uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF, IF_RADIO);
     }
   }
 
