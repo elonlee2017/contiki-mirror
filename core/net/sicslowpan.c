@@ -1493,6 +1493,7 @@ input(void)
   if(timer_expired(&reass_timer)) {
     sicslowpan_len = 0;
     processed_ip_len = 0;
+    PRINTFO("reassembly timed out\n");
   }
   /*
    * Since we don't support the mesh and broadcast header, the first header

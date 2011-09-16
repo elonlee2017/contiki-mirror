@@ -80,7 +80,7 @@
 #if UIP_CONF_IPV6
 #define UIP_CONF_ICMP6           1
 #define UIP_CONF_UDP             1
-#define UIP_CONF_TCP             1
+#define UIP_CONF_TCP             0
 #define UIP_CONF_IPV6_RPL        1
 #endif
 
@@ -110,7 +110,10 @@
 #define QUEUEBUF_CONF_NUM         1
 #define QUEUEBUF_CONF_REF_NUM     1
 /* Default uip_aligned_buf and sicslowpan_aligned_buf sizes of 1280 overflows RAM */
-#define UIP_CONF_BUFFER_SIZE	240
+#define UIP_CONF_BUFFER_SIZE	1300
+
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
+
 
 #else
 /* Original combined RF230/mac code will not compile with current contiki stack */
@@ -125,8 +128,8 @@
 #define UIP_CONF_LLH_LEN         14
 #endif /*RF230BB */
 
-#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
-#define SICSLOWPAN_CONF_FRAG              1 
+
+
 
 #define UIP_CONF_LL_802154       1 
 
@@ -157,7 +160,7 @@
 #endif
 
 #define UIP_CONF_UDP_CHECKSUMS   1
-#define UIP_CONF_TCP_SPLIT       1
+#define UIP_CONF_TCP_SPLIT       0
 
 #if UIP_CONF_IPV6_RPL
 

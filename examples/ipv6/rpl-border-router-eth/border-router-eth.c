@@ -45,7 +45,7 @@
 #include "net/netstack.h"
 #include "dev/button-sensor.h"
 #include "enc28/enc28j60-drv.h"
-#include "webserver-nogui.h"
+//#include "webserver-nogui.h"
 #include "httpd-simple.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -211,7 +211,7 @@ PROCESS_THREAD(border_router_process, ev, data)
 
   PROCESS_PAUSE();
 
-  process_start(&webserver_nogui_process, NULL);
+  //process_start(&webserver_nogui_process, NULL);
 
   PRINTF("RPL-Border router started\n");
 

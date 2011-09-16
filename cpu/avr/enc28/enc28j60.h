@@ -258,8 +258,7 @@ uint8_t ll_header[ETHERNET_LLH_LEN];
 #define TXSTOP_INIT      0x1FFF
 //
 // max frame length which the conroller will accept:
-//#define        MAX_FRAMELEN        1518        // maximum ethernet frame length
-#define MAX_FRAMELEN     500
+#define        MAX_FRAMELEN        1518        // maximum ethernet frame length
 
 
 // functions

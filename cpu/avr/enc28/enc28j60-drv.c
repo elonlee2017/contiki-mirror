@@ -67,7 +67,7 @@ enc28j60_set_input_callback(void (*c)(void))
 u8_t
 enc28j60_output(uip_lladdr_t *lladdr)
 {
-	  PRINTF("SEND: %s\n",uip_len);
+	  PRINTF("ENC28 send: %d bytes\n",uip_len);
 	if (lladdr == NULL) {
 		(&BUF->dest)->addr[0] = 0x33;
 		(&BUF->dest)->addr[1] = 0x33;
@@ -82,7 +82,9 @@ enc28j60_output(uip_lladdr_t *lladdr)
 	memcpy(&BUF->src, &uip_lladdr[IF_FALLBACK].addr, uip_ds6_if[IF_FALLBACK].lladdr_len);
 	BUF->type = UIP_HTONS(UIP_ETHTYPE_IPV6);
 	uip_len += sizeof(struct uip_eth_hdr);
+	cli();
 	enc28j60PacketSend(uip_len, uip_buf);
+	sei();
 
   return 0;
 }
@@ -100,13 +102,10 @@ void enc28j60_exit(void)
  */
 void enc28j60_init()
 {
-	//AVR_ENTER_CRITICAL_REGION();
 	uip_ds6_if[IF_FALLBACK].lladdr_len = 6;
 	eeprom_read_block ((void *)&uip_lladdr[IF_FALLBACK].addr,  &eth_mac_addr, uip_ds6_if[IF_FALLBACK].lladdr_len);
-	//AVR_LEAVE_CRITICAL_REGION();
 	enc28j60Init(&uip_lladdr[IF_FALLBACK].addr);
 	PRINTF("FALLBACK MAC %x:%x:%x:%x:%x:%x\n",uip_lladdr[IF_FALLBACK].addr[0],uip_lladdr[IF_FALLBACK].addr[1],uip_lladdr[IF_FALLBACK].addr[2],uip_lladdr[IF_FALLBACK].addr[3],uip_lladdr[IF_FALLBACK].addr[4],uip_lladdr[IF_FALLBACK].addr[5]);
-
 }
 
 
@@ -119,7 +118,7 @@ pollhandler(void)
   uip_len = enc28j60PacketReceive(UIP_BUFSIZE,uip_buf );
   sei();
   if (uip_len > 0) {
-
+	  PRINTF("ENC28 receive: %d bytes\n",uip_len);
   		if (BUF->type == uip_htons(UIP_ETHTYPE_IPV6))
   		{
   			uip_last_interface_active = IF_FALLBACK;
