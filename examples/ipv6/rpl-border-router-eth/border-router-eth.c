@@ -40,6 +40,7 @@
 #include "contiki-net.h"
 #include "net/uip.h"
 #include "net/uip-ds6.h"
+#include "net/uip-nd6.h"
 #include "net/rpl/rpl.h"
 
 #include "net/netstack.h"
@@ -193,7 +194,12 @@ set_prefix_64(uip_ipaddr_t *prefix_64, u8_t uip_if_id)
   //must add prefix to prefix list, because it has no routing at all.
   if(uip_if_id==IF_FALLBACK)
   {
-	  uip_ds6_prefix_add(&prefix, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0, IF_FALLBACK);
+	  uip_ds6_prefix_add(&prefix, UIP_DEFAULT_PREFIX_LEN, 1,
+			  (UIP_ND6_RA_FLAG_ONLINK|UIP_ND6_RA_FLAG_AUTONOMOUS), 600, 600, IF_FALLBACK);
+#ifdef UIP_CONF_DS6_ROUTE_INFORMATION
+	  prefix.u8[7]=1;
+	  uip_ds6_route_info_add(&prefix, 64, 0, 600, IF_FALLBACK);
+#endif
   }
 
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr[uip_if_id], uip_ds6_if[uip_if_id].lladdr_len);
@@ -224,10 +230,15 @@ PROCESS_THREAD(border_router_process, ev, data)
   uip_ipaddr_t prefix;
   /* Here we set a prefix !!! */
   memset(&prefix, 0, 16);
-  prefix.u8[0]=170;
-  prefix.u8[1]=170;
+  prefix.u8[0]=0x20;
+  prefix.u8[1]=0x01;
+  prefix.u8[2]=0x05;
+  prefix.u8[3]=0xc0;
+  prefix.u8[4]=0x15;
+  prefix.u8[5]=0x15;
+  prefix.u8[6]=0x33;
   set_prefix_64(&prefix, IF_FALLBACK);
-  prefix.u8[7]=1;
+  prefix.u8[7]=0x01;
   set_prefix_64(&prefix, IF_RADIO);
 
   dag = rpl_set_root((uip_ip6addr_t *)dag_id);

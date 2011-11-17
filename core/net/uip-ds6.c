@@ -77,7 +77,9 @@ uip_ds6_nbr_t uip_ds6_nbr_cache[UIP_DS6_IF_NB][UIP_DS6_NBR_NB];                 
 uip_ds6_defrt_t uip_ds6_defrt_list[UIP_DS6_IF_NB][UIP_DS6_DEFRT_NB];             /** \brief Default rt list */
 uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_IF_NB][UIP_DS6_PREFIX_NB];          /** \brief Prefix list */
 uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_IF_NB][UIP_DS6_ROUTE_NB];          /** \brief Routing table */
-
+#if UIP_CONF_DS6_ROUTE_INFORMATION
+uip_ds6_route_info_t uip_ds6_route_info_list[UIP_DS6_IF_NB][UIP_DS6_ROUTE_INFO_NB];/** \brief Route information table */
+#endif
 /** @} */
 
 /* "full" (as opposed to pointer) ip address used in this file,  */
@@ -92,6 +94,7 @@ static uip_ds6_prefix_t *locprefix;
 static uip_ds6_nbr_t *locnbr;
 static uip_ds6_defrt_t *locdefrt;
 static uip_ds6_route_t *locroute;
+static uip_ds6_route_info_t *locrtinfo;
 
 /*---------------------------------------------------------------------------*/
 void
@@ -279,14 +282,18 @@ uip_ds6_periodic(void)
     }
   }
 
+
+	}
+	//TODO: Hardcoded interface identifier - universal solution needed
+	uip_if_id=IF_FALLBACK;
 #if UIP_CONF_ROUTER & UIP_ND6_SEND_RA
   /* Periodic RA sending */
   if(stimer_expired(&uip_ds6_timer_ra)) {
 	uip_last_interface_active = uip_if_id;
-    uip_ds6_send_ra_periodic();
+    uip_ds6_send_ra_periodic(uip_if_id);
   }
 #endif /* UIP_CONF_ROUTER & UIP_ND6_SEND_RA */
-	}
+
   etimer_reset(&uip_ds6_timer_periodic);
   return;
 }
@@ -583,6 +590,55 @@ uip_ds6_is_addr_onlink(uip_ipaddr_t * ipaddr, u8_t uip_if_id)
   }
   return 0;
 }
+
+#if UIP_CONF_DS6_ROUTE_INFORMATION
+uip_ds6_route_info_t *
+uip_ds6_route_info_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
+                   uint8_t flags, unsigned long rlifetime,
+                   u8_t uip_if_id)
+{
+  if(uip_ds6_list_loop
+     ((uip_ds6_element_t *) uip_ds6_route_info_list[uip_if_id], UIP_DS6_ROUTE_INFO_NB,
+      sizeof(uip_ds6_route_info_t), ipaddr, ipaddrlen,
+      (uip_ds6_element_t **)&locrtinfo) == FREESPACE) {
+	  locrtinfo->isused = 1;
+    uip_ipaddr_copy(&locrtinfo->ipaddr, ipaddr);
+    locrtinfo->length = ipaddrlen;
+    locrtinfo->flags = flags;
+    locrtinfo->lifetime = rlifetime;
+    PRINTF("Adding route information ");
+    PRINT6ADDR(&locrtinfo->ipaddr);
+    PRINTF("length %u, flags %x, route lifetime %lx\n",
+       ipaddrlen, flags, rlifetime);
+    return locrtinfo;
+  } else {
+    PRINTF("No more space in route information list\n");
+  }
+  return NULL;
+}
+
+void
+uip_ds6_route_info_rm(uip_ds6_route_info_t * rtinfo)
+{
+  if(rtinfo != NULL) {
+    rtinfo->isused = 0;
+  }
+  return;
+}
+
+uip_ds6_route_info_t *
+uip_ds6_route_info_lookup(uip_ipaddr_t * ipaddr, uint8_t ipaddrlen, u8_t uip_if_id)
+{
+  if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_route_info_list[uip_if_id],
+		  UIP_DS6_ROUTE_INFO_NB, sizeof(uip_ds6_route_info_t),
+		       ipaddr, ipaddrlen,
+		       (uip_ds6_element_t **)&locrtinfo) == FOUND) {
+    return locrtinfo;
+  }
+  return NULL;
+}
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_addr_t *
@@ -1000,11 +1056,12 @@ uip_ds6_send_ra_sollicited(void)
 
 /*---------------------------------------------------------------------------*/
 void
-uip_ds6_send_ra_periodic(void)
+uip_ds6_send_ra_periodic(u8_t uip_if_id)
 {
   if(racount > 0) {
     /* send previously scheduled RA */
-    uip_nd6_ra_output(NULL);
+    uip_nd6_ra_output(NULL, uip_if_id);
+    //printf_P(PSTR("Sending periodic RA\n"));
     PRINTF("Sending periodic RA\n");
   }
 

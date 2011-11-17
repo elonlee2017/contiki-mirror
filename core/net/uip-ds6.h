@@ -89,6 +89,17 @@
 #endif
 #define UIP_DS6_ROUTE_NB UIP_DS6_ROUTE_NBS + UIP_DS6_ROUTE_NBU
 
+/* Route information list (RFC4191) */
+#ifdef UIP_CONF_DS6_ROUTE_INFORMATION
+#define UIP_DS6_ROUTE_INFO_NBS 0
+#ifndef UIP_CONF_DS6_ROUTE_INFO_NBU
+#define UIP_DS6_ROUTE_INFO_NBU 0
+#else
+#define UIP_DS6_ROUTE_INFO_NBU UIP_CONF_DS6_ROUTE_INFO_NBU
+#endif
+#define UIP_DS6_ROUTE_INFO_NB UIP_DS6_ROUTE_INFO_NBS + UIP_DS6_ROUTE_INFO_NBU
+#endif
+
 /* Unicast address list*/
 #define UIP_DS6_ADDR_NBS 1
 #ifndef UIP_CONF_DS6_ADDR_NBU
@@ -245,8 +256,6 @@ typedef struct rpl_route_entry {
 #endif /* UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED */
 #endif /* UIP_CONF_IPV6_RPL */
 
-
-
 /** \brief An entry in the routing table */
 typedef struct uip_ds6_route {
   uint8_t isused;
@@ -258,6 +267,17 @@ typedef struct uip_ds6_route {
   UIP_DS6_ROUTE_STATE_TYPE state;
 #endif
 } uip_ds6_route_t;
+
+/** \brief An entry in the specific routes table (RFC4191) */
+#ifdef UIP_CONF_DS6_ROUTE_INFORMATION
+typedef struct uip_ds6_route_info {
+  uint8_t isused;
+  uip_ipaddr_t ipaddr;
+  uint8_t length;
+  uint8_t flags;
+  uint32_t lifetime;
+} uip_ds6_route_info_t;
+#endif /* UIP_CONF_DS6_ROUTE_INFORMATION */
 
 /** \brief  Interface structure (contains all the interface variables) */
 typedef struct uip_ds6_netif {
@@ -279,7 +299,6 @@ typedef struct uip_ds6_element {
   uip_ipaddr_t ipaddr;
 } uip_ds6_element_t;
 
-
 /*---------------------------------------------------------------------------*/
 extern uip_ds6_netif_t uip_ds6_if[UIP_DS6_IF_NB];
 extern struct etimer uip_ds6_timer_periodic;
@@ -290,6 +309,9 @@ extern uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_IF_NB][UIP_DS6_PREFIX_NB];
 extern struct etimer uip_ds6_timer_rs;
 #endif /* UIP_CONF_ROUTER */
 
+#if UIP_CONF_DS6_ROUTE_INFORMATION
+extern uip_ds6_route_info_t uip_ds6_route_info_list[UIP_DS6_IF_NB][UIP_DS6_ROUTE_INFO_NB];
+#endif
 
 /*---------------------------------------------------------------------------*/
 /** \brief Initialize data structures */
@@ -378,6 +400,15 @@ uip_ds6_route_t *uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
 void uip_ds6_route_rm(uip_ds6_route_t *route, u8_t uip_if_id);
 void uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop, u8_t uip_if_id);
 
+#if UIP_CONF_DS6_ROUTE_INFORMATION
+uip_ds6_route_info_t *
+uip_ds6_route_info_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
+                   uint8_t flags, unsigned long rlifetime,u8_t uip_if_id);
+void uip_ds6_route_info_rm(uip_ds6_route_info_t * rtinfo);
+uip_ds6_route_info_t *
+uip_ds6_route_info_lookup(uip_ipaddr_t * ipaddr, uint8_t ipaddrlen, u8_t uip_if_id);
+#endif
+
 /** @} */
 
 /** \brief set the last 64 bits of an IP address based on the MAC address */
@@ -401,7 +432,7 @@ void uip_ds6_select_src(uip_ipaddr_t * src, uip_ipaddr_t * dst, u8_t uip_if_id);
 void uip_ds6_send_ra_sollicited(void);
 
 /** \brief Send a periodic RA */
-void uip_ds6_send_ra_periodic(void);
+void uip_ds6_send_ra_periodic(u8_t uip_if_id);
 #endif /* UIP_ND6_SEND_RA */
 #else /* UIP_CONF_ROUTER */
 /** \brief Send periodic RS to find router */

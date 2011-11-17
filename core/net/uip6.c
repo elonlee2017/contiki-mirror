@@ -1322,7 +1322,7 @@ uip_process(u8_t flag)
       break;
     case ICMP6_RS:
 #if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
-    uip_nd6_rs_input();
+    uip_nd6_rs_input(uip_last_interface_active);
 #else /* UIP_CONF_ROUTER && UIP_ND6_SEND_RA */
     UIP_STAT(++uip_stat.icmp.drop);
     uip_len = 0;

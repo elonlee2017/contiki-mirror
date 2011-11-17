@@ -151,6 +151,7 @@
 #define UIP_CONF_DS6_ADDR_NBU     2
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0
+#define UIP_CONF_DS6_ROUTE_INFO_NBU 1
 
 /* multiple intrfaces configuration*/
 #define UIP_CONF_DS6_IF_NBU       2
@@ -178,10 +179,12 @@
  */
 
 #define UIP_CONF_ROUTER                 1
-#define UIP_CONF_PICK_UP_RA             1   //ONLY FROM FALLBACK INTERFACE
-#define UIP_CONF_ND6_SEND_RA		    0
+#define UIP_CONF_PICK_UP_RA             0   //ONLY FROM FALLBACK INTERFACE
+#define UIP_CONF_ND6_SEND_RA		    1   //ONLY FROM FALLBACK INTERFACE
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
+
+#define UIP_CONF_DS6_ROUTE_INFORMATION 1    //RFC4191 Route information option
 
 #undef UIP_CONF_UDP_CONNS
 #define UIP_CONF_UDP_CONNS       12
