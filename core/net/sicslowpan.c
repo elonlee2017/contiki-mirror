@@ -445,7 +445,7 @@ uncompress_addr(uip_ipaddr_t *ipaddr, uint8_t const prefix[],
     hc06_ptr += postcount;
   } else if (prefcount > 0) {
     /* no IID based configuration if no prefix and no data => unspec */
-    uip_ds6_set_addr_iid(ipaddr, lladdr);
+    uip_ds6_set_addr_iid(ipaddr, lladdr, uip_ds6_if[IF_RADIO].lladdr_len);
   }
 
   PRINT6ADDR(ipaddr);
@@ -1562,6 +1562,7 @@ input(void)
   if(timer_expired(&reass_timer)) {
     sicslowpan_len = 0;
     processed_ip_len = 0;
+    PRINTFO("reassembly timed out\n");
   }
   /*
    * Since we don't support the mesh and broadcast header, the first header
@@ -1752,7 +1753,9 @@ input(void)
       set_packet_attrs();
       callback->input_callback();
     }
-
+    
+    uip_last_interface_active = IF_RADIO;
+    
     tcpip_input();
 #if SICSLOWPAN_CONF_FRAG
   }
@@ -1773,7 +1776,7 @@ sicslowpan_init(void)
    * Set out output function as the function to be called from uIP to
    * send a packet.
    */
-  tcpip_set_outputfunc(output);
+  tcpip_set_outputfunc(IF_RADIO, output);
 
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
 /* Preinitialize any address contexts for better header compression

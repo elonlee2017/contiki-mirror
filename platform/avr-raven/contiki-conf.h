@@ -154,6 +154,13 @@ unsigned long clock_seconds(void);
 #define NETSTACK_CONF_NETWORK     rime_driver
 #endif /* UIP_CONF_IPV6 */
 
+/* multiple intrfaces configuration*/
+#define UIP_CONF_DS6_IF_NBU       1
+#define UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_0 8
+#if UIP_CONF_DS6_IF_NBU > 1
+#define UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_1 6
+#endif
+
 #define UIP_CONF_LL_802154       1
 #define UIP_CONF_LLH_LEN         0
 

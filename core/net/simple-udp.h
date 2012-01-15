@@ -77,7 +77,7 @@ int simple_udp_register(struct simple_udp_connection *c,
                         uint16_t local_port,
                         uip_ipaddr_t *remote_addr,
                         uint16_t remote_port,
-                        simple_udp_callback receive_callback);
+                        simple_udp_callback receive_callback, u8_t uip_if_id);
 
 int simple_udp_send(struct simple_udp_connection *c,
                     const void *data, uint16_t datalen);

@@ -137,7 +137,7 @@ simple_udp_register(struct simple_udp_connection *c,
                     uint16_t local_port,
                     uip_ipaddr_t *remote_addr,
                     uint16_t remote_port,
-                    simple_udp_callback receive_callback)
+                    simple_udp_callback receive_callback, u8_t uip_if_id)
 {
 
   init_simple_udp();
@@ -150,7 +150,7 @@ simple_udp_register(struct simple_udp_connection *c,
   c->receive_callback = receive_callback;
 
   PROCESS_CONTEXT_BEGIN(&simple_udp_process);
-  c->udp_conn = udp_new(remote_addr, UIP_HTONS(remote_port), c);
+  c->udp_conn = udp_new(remote_addr, UIP_HTONS(remote_port), c, uip_if_id);
   if(c->udp_conn != NULL) {
     udp_bind(c->udp_conn, UIP_HTONS(local_port));
   }

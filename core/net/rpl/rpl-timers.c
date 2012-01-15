@@ -71,6 +71,7 @@ handle_periodic_timer(void *ptr)
   next_dis++;
   if(rpl_get_any_dag() == NULL && next_dis >= RPL_DIS_INTERVAL) {
     next_dis = 0;
+    uip_last_interface_active = IF_RADIO;
     dis_output(NULL);
   }
 #endif
@@ -132,7 +133,7 @@ handle_dio_timer(void *ptr)
 
   PRINTF("RPL: DIO Timer triggered\n");
   if(!dio_send_ok) {
-    if(uip_ds6_get_link_local(ADDR_PREFERRED) != NULL) {
+    if(uip_ds6_get_link_local(ADDR_PREFERRED, IF_RADIO) != NULL) {
       dio_send_ok = 1;
     } else {
       PRINTF("RPL: Postponing DIO transmission since link local address is not ok\n");
@@ -147,6 +148,7 @@ handle_dio_timer(void *ptr)
 #if RPL_CONF_STATS
       instance->dio_totsend++;
 #endif /* RPL_CONF_STATS */
+      uip_last_interface_active = IF_RADIO;
       dio_output(instance, NULL);
     } else {
       PRINTF("RPL: Supressing DIO transmission (%d >= %d)\n",
@@ -198,7 +200,7 @@ handle_dao_timer(void *ptr)
 
   instance = (rpl_instance_t *)ptr;
 
-  if(!dio_send_ok && uip_ds6_get_link_local(ADDR_PREFERRED) == NULL) {
+  if(!dio_send_ok && uip_ds6_get_link_local(ADDR_PREFERRED, IF_RADIO) == NULL) {
     PRINTF("RPL: Postpone DAO transmission\n");
     ctimer_set(&instance->dao_timer, CLOCK_SECOND, handle_dao_timer, instance);
     return;
@@ -208,6 +210,7 @@ handle_dao_timer(void *ptr)
   if(instance->current_dag->preferred_parent != NULL) {
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
     /* Set the route lifetime to the default value. */
+    uip_last_interface_active = IF_RADIO;
     dao_output(instance->current_dag->preferred_parent, instance->default_lifetime);
   } else {
     PRINTF("RPL: No suitable DAO parent\n");

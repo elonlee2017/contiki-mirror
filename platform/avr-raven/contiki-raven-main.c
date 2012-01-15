@@ -199,7 +199,7 @@ void initialize(void)
    * loop. In conjuction with PERIODICPRINTS, never-used stack will be printed
    * every STACKMONITOR seconds.
    */
-{
+  {
 extern uint16_t __bss_end;
 uint16_t p=(uint16_t)&__bss_end;
     do {
@@ -259,7 +259,8 @@ uint8_t i;
   }
  
 #if UIP_CONF_IPV6 
-  memcpy(&uip_lladdr.addr, &addr.u8, sizeof(rimeaddr_t));
+  memcpy(&uip_lladdr[IF_RADIO].addr, &addr.u8, 8);
+  //memcpy(&uip_lladdr.addr, &addr.u8, sizeof(rimeaddr_t));
   rimeaddr_set_node_addr(&addr);  
   rf230_set_pan_addr(params_get_panid(),params_get_panaddr(),(uint8_t *)&addr.u8);
 #elif WITH_NODE_ID
@@ -361,8 +362,8 @@ uint8_t i;
   unsigned int size;
 
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
-	if (uip_ds6_if.addr_list[i].isused) {	  
-	   httpd_cgi_sprint_ip6(uip_ds6_if.addr_list[i].ipaddr,buf);
+	if (uip_ds6_if[IF_RADIO].addr_list[i].isused) {	  
+	   httpd_cgi_sprint_ip6(uip_ds6_if[IF_RADIO].addr_list[i].ipaddr,buf);
        PRINTA("IPv6 Address: %s\n",buf);
 	}
   }
@@ -505,13 +506,13 @@ if ((clocktime%ROUTES)==2) {
       
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
-extern uip_ds6_netif_t uip_ds6_if;
+extern uip_ds6_netif_t uip_ds6_if[UIP_DS6_IF_NB];
 
   uint8_t i,j;
   PRINTF("\nAddresses [%u max]\n",UIP_DS6_ADDR_NB);
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
-    if (uip_ds6_if.addr_list[i].isused) {
-      ipaddr_add(&uip_ds6_if.addr_list[i].ipaddr);
+    if (uip_ds6_if[IF_RADIO].addr_list[i].isused) {
+      ipaddr_add(&uip_ds6_if[IF_RADIO].addr_list[i].ipaddr);
       PRINTF("\n");
     }
   }

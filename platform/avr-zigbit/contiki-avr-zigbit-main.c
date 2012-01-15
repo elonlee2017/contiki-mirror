@@ -70,9 +70,11 @@
 
 #include "dev/rs232.h"
 #include "dev/serial-line.h"
-#include "dev/slip.h"
+#include "enc28/enc28j60-drv.h"
 
 #include "sicslowmac.h"
+
+void uip_log(char *msg) { PRINTF("%s",msg); }
 
 FUSES =
 	{
@@ -87,7 +89,7 @@ FUSES =
 PROCINIT(&etimer_process, &mac_process, &tcpip_process );
 #endif
 /* Put default MAC address in EEPROM */
-uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
+uint8_t mac_address[8] EEMEM = {0x99, 0xaa, 0x99, 0xaa, 0x99, 0xaa, 0x99, 0xaa};
 
 
 void
@@ -95,7 +97,7 @@ init_lowlevel(void)
 {
 
   /* Second rs232 port for debugging */
-  rs232_init(RS232_PORT_1, USART_BAUD_115200,
+  rs232_init(RS232_PORT_1, USART_BAUD_38400,
              USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 
   /* Redirect stdout to second port */
@@ -117,6 +119,8 @@ init_lowlevel(void)
   ctimer_init();
   /* Start radio and radio receive process */
   NETSTACK_RADIO.init();
+  enc28j60_init();
+  process_start(&enc28j60_process, NULL);
 
   /* Set addresses BEFORE starting tcpip process */
 
@@ -125,7 +129,7 @@ init_lowlevel(void)
   eeprom_read_block ((void *)&addr.u8,  &mac_address, 8);
  
 #if UIP_CONF_IPV6
-  memcpy(&uip_lladdr.addr, &addr.u8, 8);
+  memcpy(&uip_lladdr[IF_RADIO].addr, &addr.u8, 8);
 #endif  
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
 #ifdef CHANNEL_802_15_4
@@ -159,8 +163,8 @@ init_lowlevel(void)
 #if ANNOUNCE_BOOT
   printf_P(PSTR("Routing Enabled\n"));
 #endif
-  rime_init(rime_udp_init(NULL));
-  uip_router_register(&rimeroute);
+  //rime_init(rime_udp_init(NULL));
+  //uip_router_register(&rimeroute);
 #endif
 
   process_start(&tcpip_process, NULL);

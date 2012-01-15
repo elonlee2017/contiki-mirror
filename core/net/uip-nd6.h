@@ -122,6 +122,7 @@
 #define UIP_ND6_OPT_PREFIX_INFO         3
 #define UIP_ND6_OPT_REDIRECTED_HDR      4
 #define UIP_ND6_OPT_MTU                 5
+#define UIP_ND6_OPT_ROUTE_INFO          24
 /** @} */
 
 /** \name ND6 option types */
@@ -266,6 +267,18 @@ typedef struct uip_nd6_opt_mtu {
   uint32_t mtu;
 } uip_nd6_opt_mtu;
 
+/** \brief ND option route information */
+#ifdef UIP_CONF_DS6_ROUTE_INFORMATION
+typedef struct uip_nd6_opt_route_info {
+  uint8_t type;
+  uint8_t len;
+  uint8_t preflen;
+  uint8_t flagsreserved;
+  uint32_t rlifetime;
+  uip_ipaddr_t prefix;
+} uip_nd6_opt_route_info;
+#endif
+
 /** \struct Redirected header option */
 typedef struct uip_nd6_opt_redirected_hdr {
   uint8_t type;
@@ -300,7 +313,7 @@ typedef struct uip_nd6_opt_redirected_hdr {
  *
  */
 void
-uip_nd6_ns_input(void);
+uip_nd6_ns_input(u8_t uip_if_id);
 
 /**
  * \brief Send a neighbor solicitation, send a Neighbor Advertisement
@@ -323,7 +336,7 @@ uip_nd6_ns_input(void);
  *   a SLLAO option, otherwise no.
  */
 void
-uip_nd6_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt);
+uip_nd6_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt, u8_t uip_if_id);
 
 /**
  * \brief Process a Neighbor Advertisement
@@ -343,7 +356,7 @@ uip_nd6_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt);
  *
  */
 void
-uip_nd6_na_input(void);
+uip_nd6_na_input(u8_t uip_if_id);
 
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
@@ -351,14 +364,14 @@ uip_nd6_na_input(void);
  * \brief Process a Router Solicitation
  *
  */
-void uip_nd6_rs_input(void);
+void uip_nd6_rs_input(u8_t uip_if_id);
 
 /**
  * \brief send a Router Advertisement
  *
  * Only for router, for periodic as well as sollicited RA
  */
-void uip_nd6_ra_output(uip_ipaddr_t *dest);
+void uip_nd6_ra_output(uip_ipaddr_t *dest, u8_t uip_if_id);
 #endif /* UIP_ND6_SEND_RA */
 #endif /*UIP_CONF_ROUTER*/
 
@@ -373,7 +386,7 @@ void uip_nd6_ra_output(uip_ipaddr_t *dest);
  * possible option is SLLAO, MUST NOT be included if source = unspecified
  * SHOULD be included otherwise
  */
-void uip_nd6_rs_output(void);
+void uip_nd6_rs_output(u8_t uip_if_id);
 
 /**
  *
@@ -386,7 +399,7 @@ void uip_nd6_rs_output(void);
  * - If prefix option: start autoconf, add prefix to prefix list
  */
 void
-uip_nd6_ra_input(void);
+uip_nd6_ra_input(u8_t uip_if_id);
 /** @} */
 
 

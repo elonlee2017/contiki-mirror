@@ -268,7 +268,7 @@ set_ip_from_prefix(uip_ipaddr_t *ipaddr, rpl_prefix_t *prefix)
 {
   memset(ipaddr, 0, sizeof(uip_ipaddr_t));
   memcpy(ipaddr, &prefix->prefix, (prefix->length + 7) / 8);
-  uip_ds6_set_addr_iid(ipaddr, &uip_lladdr);
+  uip_ds6_set_addr_iid(ipaddr, &uip_lladdr, uip_ds6_if[IF_RADIO].lladdr_len);
 }
 /************************************************************************/
 static void
@@ -287,22 +287,22 @@ check_prefix(rpl_prefix_t *last_prefix, rpl_prefix_t *new_prefix)
 
   if(last_prefix != NULL) {
     set_ip_from_prefix(&ipaddr, last_prefix);
-    rep = uip_ds6_addr_lookup(&ipaddr);
+    rep = uip_ds6_addr_lookup(&ipaddr, IF_RADIO);
     if(rep != NULL) {
       PRINTF("RPL: removing global IP address ");
       PRINT6ADDR(&ipaddr);
       PRINTF("\n");
-      uip_ds6_addr_rm(rep);
+      uip_ds6_addr_rm(rep, IF_RADIO);
     }
   }
   
   if(new_prefix != NULL) {
     set_ip_from_prefix(&ipaddr, new_prefix);
-    if(uip_ds6_addr_lookup(&ipaddr) == NULL) {
+    if(uip_ds6_addr_lookup(&ipaddr, IF_RADIO) == NULL) {
       PRINTF("RPL: adding global IP address ");
       PRINT6ADDR(&ipaddr);
       PRINTF("\n");
-      uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+      uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF, IF_RADIO);
     }
   }
 }
@@ -344,9 +344,9 @@ rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from)
     PRINTF("\n");
     instance->def_route = uip_ds6_defrt_add(from,
                                             RPL_LIFETIME(instance,
-                                                         instance->default_lifetime));
+                                                         instance->default_lifetime), IF_RADIO);
     if(instance->def_route == NULL) {
-      return 0;
+    return 0;
     }
   }
   return 1;
@@ -641,7 +641,6 @@ rpl_select_parent(rpl_dag_t *dag)
       best = dag->instance->of->best_parent(best, p);
     }
   }
-
   if(best != NULL) {
     dag->preferred_parent = best;
   }
