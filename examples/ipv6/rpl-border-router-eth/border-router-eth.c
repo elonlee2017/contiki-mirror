@@ -196,6 +196,14 @@ set_prefix_64(uip_ipaddr_t *prefix_64, u8_t uip_if_id)
   {
 	  uip_ds6_prefix_add(&prefix, UIP_DEFAULT_PREFIX_LEN, 1,
 			  (UIP_ND6_RA_FLAG_ONLINK|UIP_ND6_RA_FLAG_AUTONOMOUS), 600, 600, IF_FALLBACK);
+
+/*
+ * Define information for Route Information Option (RFC4191).
+ * Node which sends normal Router Advertisements (RFC4861) can
+ * use Route Information Option to advertise routes to hosts.
+ * Typical usage is to advertise a route to a RPL-based Wireless
+ * Sensor Network to PC hosts in LAN.
+ */
 #ifdef UIP_CONF_DS6_ROUTE_INFORMATION
 	  prefix.u8[7]=1;
 	  uip_ds6_route_info_add(&prefix, 64, 0, 600, IF_FALLBACK);
@@ -228,7 +236,11 @@ PROCESS_THREAD(border_router_process, ev, data)
   //  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   //}
   uip_ipaddr_t prefix;
-  /* Here we set a prefix !!! */
+  /*
+   * Here we set a prefix of both Ethernet and Radio Networks
+   * The prefix differs only on the last bit (typical situation
+   * if a subnet is received from ISP).
+   * */
   memset(&prefix, 0, 16);
   prefix.u8[0]=0x20;
   prefix.u8[1]=0x01;
@@ -237,9 +249,9 @@ PROCESS_THREAD(border_router_process, ev, data)
   prefix.u8[4]=0x15;
   prefix.u8[5]=0x15;
   prefix.u8[6]=0x33;
-  set_prefix_64(&prefix, IF_FALLBACK);
-  prefix.u8[7]=0x01;
-  set_prefix_64(&prefix, IF_RADIO);
+  set_prefix_64(&prefix, IF_FALLBACK);  // set prefix for Ethernet network
+  prefix.u8[7]=0x01;					// change last bit
+  set_prefix_64(&prefix, IF_RADIO);		// set prefix for Radio network
 
   dag = rpl_set_root(RPL_DEFAULT_INSTANCE,(uip_ip6addr_t *)dag_id);
   if(dag != NULL) {

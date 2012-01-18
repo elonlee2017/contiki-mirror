@@ -112,54 +112,54 @@ uip_ds6_init(void)
   memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));
   memset(uip_ds6_routing_table, 0, sizeof(uip_ds6_routing_table));
 
-  /* Set interface 1 parameters */
- uip_ds6_if[IF_RADIO].link_mtu = UIP_LINK_MTU;
- uip_ds6_if[IF_RADIO].cur_hop_limit = UIP_TTL;
-    uip_ds6_if[IF_RADIO].base_reachable_time = UIP_ND6_REACHABLE_TIME;
-    uip_ds6_if[IF_RADIO].reachable_time = uip_ds6_compute_reachable_time(IF_RADIO);
-    uip_ds6_if[IF_RADIO].retrans_timer = UIP_ND6_RETRANS_TIMER;
-    uip_ds6_if[IF_RADIO].maxdadns = UIP_ND6_DEF_MAXDADNS;
-    uip_ds6_if[IF_RADIO].lladdr_len = UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_0;
+  /* Set interface 0 parameters */
+ uip_ds6_if[UIP_INTERFACE_0_ID].link_mtu = UIP_LINK_MTU;
+ uip_ds6_if[UIP_INTERFACE_0_ID].cur_hop_limit = UIP_TTL;
+    uip_ds6_if[UIP_INTERFACE_0_ID].base_reachable_time = UIP_ND6_REACHABLE_TIME;
+    uip_ds6_if[UIP_INTERFACE_0_ID].reachable_time = uip_ds6_compute_reachable_time(UIP_INTERFACE_0_ID);
+    uip_ds6_if[UIP_INTERFACE_0_ID].retrans_timer = UIP_ND6_RETRANS_TIMER;
+    uip_ds6_if[UIP_INTERFACE_0_ID].maxdadns = UIP_ND6_DEF_MAXDADNS;
+    uip_ds6_if[UIP_INTERFACE_0_ID].lladdr_len = UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_0;
   /* Create link local address, prefix, multicast addresses, anycast addresses */
   uip_create_linklocal_prefix(&loc_fipaddr);
 #if UIP_CONF_ROUTER
-  uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0, IF_RADIO);
+  uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0, UIP_INTERFACE_0_ID);
 #else /* UIP_CONF_ROUTER */
-  uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, IF_RADIO);
+  uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, UIP_INTERFACE_0_ID);
 #endif /* UIP_CONF_ROUTER */
-  uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr[IF_RADIO], uip_ds6_if[IF_RADIO].lladdr_len);
-  uip_ds6_addr_add(&loc_fipaddr, 0, ADDR_AUTOCONF, IF_RADIO);
+  uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr[UIP_INTERFACE_0_ID], uip_ds6_if[UIP_INTERFACE_0_ID].lladdr_len);
+  uip_ds6_addr_add(&loc_fipaddr, 0, ADDR_AUTOCONF, UIP_INTERFACE_0_ID);
 
   uip_create_linklocal_allnodes_mcast(&loc_fipaddr);
-  uip_ds6_maddr_add(&loc_fipaddr, IF_RADIO);
+  uip_ds6_maddr_add(&loc_fipaddr, UIP_INTERFACE_0_ID);
 #if UIP_CONF_ROUTER
   uip_create_linklocal_allrouters_mcast(&loc_fipaddr);
-  uip_ds6_maddr_add(&loc_fipaddr, IF_RADIO);
+  uip_ds6_maddr_add(&loc_fipaddr, UIP_INTERFACE_0_ID);
 #endif
 #if UIP_DS6_IF_NB > 1
-  /* Set interface 2 parameters */
-  uip_ds6_if[IF_FALLBACK].link_mtu = UIP_LINK_MTU;
-  uip_ds6_if[IF_FALLBACK].cur_hop_limit = UIP_TTL;
-  uip_ds6_if[IF_FALLBACK].base_reachable_time = UIP_ND6_REACHABLE_TIME;
-  uip_ds6_if[IF_FALLBACK].reachable_time = uip_ds6_compute_reachable_time(IF_FALLBACK);
-  uip_ds6_if[IF_FALLBACK].retrans_timer = UIP_ND6_RETRANS_TIMER;
-  uip_ds6_if[IF_FALLBACK].maxdadns = UIP_ND6_DEF_MAXDADNS;
-  uip_ds6_if[IF_FALLBACK].lladdr_len = UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_1;
+  /* Set interface 1 parameters */
+  uip_ds6_if[UIP_INTERFACE_1_ID].link_mtu = UIP_LINK_MTU;
+  uip_ds6_if[UIP_INTERFACE_1_ID].cur_hop_limit = UIP_TTL;
+  uip_ds6_if[UIP_INTERFACE_1_ID].base_reachable_time = UIP_ND6_REACHABLE_TIME;
+  uip_ds6_if[UIP_INTERFACE_1_ID].reachable_time = uip_ds6_compute_reachable_time(UIP_INTERFACE_1_ID);
+  uip_ds6_if[UIP_INTERFACE_1_ID].retrans_timer = UIP_ND6_RETRANS_TIMER;
+  uip_ds6_if[UIP_INTERFACE_1_ID].maxdadns = UIP_ND6_DEF_MAXDADNS;
+  uip_ds6_if[UIP_INTERFACE_1_ID].lladdr_len = UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_1;
   /* Create link local address, prefix, multicast addresses, anycast addresses */
   uip_create_linklocal_prefix(&loc_fipaddr);
 #if UIP_CONF_ROUTER
-  uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0, IF_FALLBACK);
+  uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0, UIP_INTERFACE_1_ID);
 #else /* UIP_CONF_ROUTER */
-  uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, IF_FALLBACK);
+  uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, UIP_INTERFACE_1_ID);
 #endif /* UIP_CONF_ROUTER */
-  uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr[IF_FALLBACK], uip_ds6_if[IF_FALLBACK].lladdr_len);
-  uip_ds6_addr_add(&loc_fipaddr, 0, ADDR_AUTOCONF, IF_FALLBACK);
+  uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr[UIP_INTERFACE_1_ID], uip_ds6_if[UIP_INTERFACE_1_ID].lladdr_len);
+  uip_ds6_addr_add(&loc_fipaddr, 0, ADDR_AUTOCONF, UIP_INTERFACE_1_ID);
 
   uip_create_linklocal_allnodes_mcast(&loc_fipaddr);
-  uip_ds6_maddr_add(&loc_fipaddr, IF_FALLBACK);
+  uip_ds6_maddr_add(&loc_fipaddr, UIP_INTERFACE_1_ID);
 #if UIP_CONF_ROUTER
   uip_create_linklocal_allrouters_mcast(&loc_fipaddr);
-  uip_ds6_maddr_add(&loc_fipaddr, IF_FALLBACK);
+  uip_ds6_maddr_add(&loc_fipaddr, UIP_INTERFACE_1_ID);
 #if UIP_ND6_SEND_RA
   stimer_set(&uip_ds6_timer_ra, 2);     /* wait to have a link local IP address */
 #endif /* UIP_ND6_SEND_RA */
@@ -175,15 +175,13 @@ uip_ds6_init(void)
 }
 
 
-/*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
- * DESIGN CONSIDERATIONS (MW)
+/*
  * Current solution uses single timer and does periodic processing
  * of all interfaces in one call. To use separate timers it's necessary
  * to modify uip_ds6_periodic() below, and eventhandler() in tcpip.c.
  * Single uip_ds6_periodic() call may generate more than one packet to send,
  * (for example on startup, all addresses need DAD) so the function returns
  * after first packet is generated.
- * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
  */
 /*---------------------------------------------------------------------------*/
 void
@@ -191,8 +189,10 @@ uip_ds6_periodic(void)
 {
 
 	u8_t uip_if_id;
-  /* Periodic processing on unicast addresses */
-	for(uip_if_id=0;uip_if_id<UIP_DS6_IF_NB;uip_if_id++){
+	/* Loop over all network interfaces */
+	for(uip_if_id=0;uip_if_id<UIP_DS6_IF_NB;uip_if_id++)
+	{
+		  /* Periodic processing on unicast addresses */
 		//PRINTF("Periodic if %d\n",uip_if_id);
 		for(locaddr = uip_ds6_if[uip_if_id].addr_list;
 				locaddr < uip_ds6_if[uip_if_id].addr_list + UIP_DS6_ADDR_NB; locaddr++) {
@@ -203,7 +203,7 @@ uip_ds6_periodic(void)
       } else if((locaddr->state == ADDR_TENTATIVE)
                 && (locaddr->dadnscount <= uip_ds6_if[uip_if_id].maxdadns)
                 && (timer_expired(&locaddr->dadtimer))) {
-					uip_last_interface_active = uip_if_id;
+					uip_active_interface = uip_if_id;
 					uip_ds6_dad(locaddr, uip_if_id);
 #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
       }
@@ -243,7 +243,7 @@ uip_ds6_periodic(void)
         } else if(stimer_expired(&locnbr->sendns)) {
           locnbr->nscount++;
           PRINTF("NBR_INCOMPLETE: NS %u\n", locnbr->nscount);
-          uip_last_interface_active = uip_if_id;
+          uip_active_interface = uip_if_id;
           uip_nd6_ns_output(NULL, NULL, &locnbr->ipaddr, uip_if_id);
           stimer_set(&(locnbr->sendns), uip_ds6_if[uip_if_id].retrans_timer / 1000);
         }
@@ -261,7 +261,7 @@ uip_ds6_periodic(void)
           locnbr->state = NBR_PROBE;
           locnbr->nscount = 1;
           PRINTF("DELAY: moving to PROBE + NS %u\n", locnbr->nscount);
-          uip_last_interface_active = uip_if_id;
+          uip_active_interface = uip_if_id;
           uip_nd6_ns_output(NULL, &locnbr->ipaddr, &locnbr->ipaddr, uip_if_id);
           stimer_set(&locnbr->sendns, uip_ds6_if[uip_if_id].retrans_timer / 1000);
         }
@@ -276,7 +276,7 @@ uip_ds6_periodic(void)
         } else if(stimer_expired(&locnbr->sendns)) {
           locnbr->nscount++;
           PRINTF("PROBE: NS %u\n", locnbr->nscount);
-          uip_last_interface_active = uip_if_id;
+          uip_active_interface = uip_if_id;
           uip_nd6_ns_output(NULL, &locnbr->ipaddr, &locnbr->ipaddr, uip_if_id);
           stimer_set(&locnbr->sendns, uip_ds6_if[uip_if_id].retrans_timer / 1000);
         }
@@ -286,15 +286,15 @@ uip_ds6_periodic(void)
       }
     }
   }
+	}// End of loop over network interfaces
 
+/* Hardcoded interface identifier - universal solution needed */
 
-	}
-	//TODO: Hardcoded interface identifier - universal solution needed
-	uip_if_id=IF_FALLBACK;
 #if UIP_CONF_ROUTER & UIP_ND6_SEND_RA
+	uip_if_id=IF_FALLBACK;
   /* Periodic RA sending */
   if(stimer_expired(&uip_ds6_timer_ra)) {
-	uip_last_interface_active = uip_if_id;
+	uip_active_interface = uip_if_id;
     uip_ds6_send_ra_periodic(uip_if_id);
   }
 #endif /* UIP_CONF_ROUTER & UIP_ND6_SEND_RA */

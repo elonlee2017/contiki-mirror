@@ -513,7 +513,7 @@ if ((clocktime%ROUTES)==2) {
       
 extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
-extern uip_ds6_netif_t uip_ds6_if[UIP_DS6_IF_NB];
+extern uip_ds6_netif_t uip_ds6_if[];
 
   uint8_t i,j;
   PRINTF("\nAddresses [%u max]\n",UIP_DS6_ADDR_NB);

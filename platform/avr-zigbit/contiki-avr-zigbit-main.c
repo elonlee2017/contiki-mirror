@@ -117,9 +117,10 @@ init_lowlevel(void)
 #if RF230BB
 
   ctimer_init();
-  /* Start radio and radio receive process */
+  /* Start radio send and receive process */
   NETSTACK_RADIO.init();
   enc28j60_init();
+    /* Start ethernet send and receive process */
   process_start(&enc28j60_process, NULL);
 
   /* Set addresses BEFORE starting tcpip process */

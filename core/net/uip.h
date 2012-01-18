@@ -111,14 +111,13 @@ typedef struct uip_eth_addr {
 #endif
 #define UIP_DS6_IF_NB UIP_DS6_IF_NBS + UIP_DS6_IF_NBU
 
-/*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
- * DESIGN CONSIDERATIONS (MW)
+/*
  * Hard-coded interface identifiers - these are necessary
- * until some external configuration file is developed.
- * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ * for interface assignment, routing and other activities.
+ *
  */
-#define IF_RADIO 0
-#define IF_FALLBACK 1
+#define UIP_INTERFACE_0_ID 0
+#define UIP_INTERFACE_1_ID 1
 
 #if UIP_CONF_LL_802154
 /** \brief 802.15.4 address */
@@ -2215,7 +2214,7 @@ u16_t uip_udpchksum(void);
 u16_t uip_icmp6chksum(void);
 
 /* Last interface active - for proper LLAO construction */
-u8_t uip_last_interface_active;
+u8_t uip_active_interface;
 
 
 #endif /* __UIP_H__ */

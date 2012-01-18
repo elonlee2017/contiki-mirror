@@ -48,6 +48,8 @@
 #define DEBUG 0
 #include "net/uip-debug.h"
 
+#define ENC28_INTERFACE_ID IF_FALLBACK
+
 #define BUF ((struct uip_eth_hdr *)&ll_header[0])
 #define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
@@ -77,9 +79,9 @@ enc28j60_output(uip_lladdr_t *lladdr)
 		(&BUF->dest)->addr[5] = IPBUF->destipaddr.u8[15];
 	}
 	else {
-		memcpy(&BUF->dest, lladdr, uip_ds6_if[IF_FALLBACK].lladdr_len);
+		memcpy(&BUF->dest, lladdr, uip_ds6_if[ENC28_INTERFACE_ID].lladdr_len);
 	}
-	memcpy(&BUF->src, &uip_lladdr[IF_FALLBACK].addr, uip_ds6_if[IF_FALLBACK].lladdr_len);
+	memcpy(&BUF->src, &uip_lladdr[ENC28_INTERFACE_ID].addr, uip_ds6_if[ENC28_INTERFACE_ID].lladdr_len);
 	BUF->type = UIP_HTONS(UIP_ETHTYPE_IPV6);
 	uip_len += sizeof(struct uip_eth_hdr);
 	cli();
@@ -102,10 +104,10 @@ void enc28j60_exit(void)
  */
 void enc28j60_init()
 {
-	uip_ds6_if[IF_FALLBACK].lladdr_len = 6;
-	eeprom_read_block ((void *)&uip_lladdr[IF_FALLBACK].addr,  &eth_mac_addr, uip_ds6_if[IF_FALLBACK].lladdr_len);
-	enc28j60Init(&uip_lladdr[IF_FALLBACK].addr);
-	PRINTF("FALLBACK MAC %x:%x:%x:%x:%x:%x\n",uip_lladdr[IF_FALLBACK].addr[0],uip_lladdr[IF_FALLBACK].addr[1],uip_lladdr[IF_FALLBACK].addr[2],uip_lladdr[IF_FALLBACK].addr[3],uip_lladdr[IF_FALLBACK].addr[4],uip_lladdr[IF_FALLBACK].addr[5]);
+	uip_ds6_if[ENC28_INTERFACE_ID].lladdr_len = 6;
+	eeprom_read_block ((void *)&uip_lladdr[ENC28_INTERFACE_ID].addr,  &eth_mac_addr, uip_ds6_if[ENC28_INTERFACE_ID].lladdr_len);
+	enc28j60Init(&uip_lladdr[ENC28_INTERFACE_ID].addr);
+	PRINTF("FALLBACK MAC %x:%x:%x:%x:%x:%x\n",uip_lladdr[ENC28_INTERFACE_ID].addr[0],uip_lladdr[ENC28_INTERFACE_ID].addr[1],uip_lladdr[ENC28_INTERFACE_ID].addr[2],uip_lladdr[ENC28_INTERFACE_ID].addr[3],uip_lladdr[ENC28_INTERFACE_ID].addr[4],uip_lladdr[ENC28_INTERFACE_ID].addr[5]);
 }
 
 
@@ -121,7 +123,7 @@ pollhandler(void)
 	  PRINTF("ENC28 receive: %d bytes\n",uip_len);
   		if (BUF->type == uip_htons(UIP_ETHTYPE_IPV6))
   		{
-  			uip_last_interface_active = IF_FALLBACK;
+  			uip_active_interface = ENC28_INTERFACE_ID;
   			tcpip_input();
   		}
   		else
@@ -138,7 +140,7 @@ PROCESS_THREAD(enc28j60_process, ev, data)
 
   PROCESS_BEGIN();
 
-  tcpip_set_outputfunc(IF_FALLBACK, enc28j60_output);
+  tcpip_set_outputfunc(ENC28_INTERFACE_ID, enc28j60_output);
 
   process_poll(&enc28j60_process);
   

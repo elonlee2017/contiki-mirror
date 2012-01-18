@@ -123,7 +123,8 @@ raven_ping6(void)
 	   uip_ip6addr(&UIP_IP_BUF->destipaddr,0x2001,0x0420,0x0000,0x0010,0x0250,0x8bff,0xfee8,0xf800);  //six.cisco.com
 	}	
 #elif MULTIPLE_INTERFACES_TEST_PING_PC
-    uip_ip6addr(&UIP_IP_BUF->destipaddr,0xaaaa,0x0000,0x0000,0x0000,0x021e,0x33ff,0xfeae,0x63a8);
+    //INSERT ADDRESS OF A PC TO PING
+    uip_ip6addr(&UIP_IP_BUF->destipaddr,0x2001,0x05c0,0x1515,0x3300,0x021e,0x33ff,0xfeae,0x63a8);
 #else
 	  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, uip_ds6_defrt_choose(IF_RADIO));    //the default router
 #endif

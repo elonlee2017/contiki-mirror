@@ -1754,7 +1754,7 @@ input(void)
       callback->input_callback();
     }
     
-    uip_last_interface_active = IF_RADIO;
+    uip_active_interface = IF_RADIO;
     
     tcpip_input();
 #if SICSLOWPAN_CONF_FRAG

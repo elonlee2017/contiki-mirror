@@ -109,10 +109,7 @@ enum {
 /* Called on IP packet output. */
 #if UIP_CONF_IPV6
 
-/*
- * DESIGN CONSIDERATIONS (MW)
- * Single pointer to output function was changed into an array of pointers.
- */
+/* Array of pointers to output functions - one for each interface. */
 static u8_t (* outputfunc[UIP_DS6_IF_NB])(uip_lladdr_t *a);
 
 u8_t
@@ -477,7 +474,7 @@ eventhandler(process_event_t ev, process_data_t data)
         if(data == &uip_ds6_timer_rs &&
            etimer_expired(&uip_ds6_timer_rs)){
            /*Router solicitations only to fallback interface*/
-          uip_last_interface_active = IF_FALLBACK;
+          uip_active_interface = IF_FALLBACK;
           uip_ds6_send_rs(IF_FALLBACK);
           tcpip_ipv6_output();
         }
@@ -566,41 +563,37 @@ tcpip_ipv6_output(void)
   if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     /* Next hop determination */
     nbr = NULL;
-    if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr, uip_last_interface_active)){
+    if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr, uip_active_interface)){
       nexthop = &UIP_IP_BUF->destipaddr;
     } else {
       uip_ds6_route_t* locrt;
-      locrt = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr, uip_last_interface_active);
+      locrt = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr, uip_active_interface);
       if(locrt == NULL) {
-        if((nexthop = uip_ds6_defrt_choose(uip_last_interface_active)) == NULL) {     
-//#ifdef UIP_FALLBACK_INTERFACE
-//	  printf("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
-//		 uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
-//	  if(uip_ext_len > 0) {
-//	    uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
-//	    remove_ext_hdr();
-//	    /* This should be copied from the ext header... */
-//	    UIP_IP_BUF->proto = proto;
-//	  }
-//	  UIP_FALLBACK_INTERFACE.output();
-//#else
-//          PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
-//#endif /* !UIP_FALLBACK_INTERFACE */
-        	if(uip_last_interface_active==IF_RADIO)
+        if((nexthop = uip_ds6_defrt_choose(uip_active_interface)) == NULL) {     
+#if UIP_DS6_IF_NB>1
+        	if(uip_active_interface==UIP_INTERFACE_0_ID)
         	{
         		UIP_LOG("Route from radio to fallback\n");
-        		uip_next_if = IF_FALLBACK;
+        		printf("RADIO TO FALLBACK: removing ext hdrs & setting proto %d %d\n",
+        				 uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
+        			  if(uip_ext_len > 0) {
+        			    uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
+        			    remove_ext_hdr();
+        			    /* This should be copied from the ext header... */
+        			    UIP_IP_BUF->proto = proto;
+        			  }
+        		uip_next_if = UIP_INTERFACE_1_ID;
         	}
-        	else if(uip_last_interface_active==IF_FALLBACK)
+        	else if(uip_active_interface==UIP_INTERFACE_1_ID)
         	{
         		UIP_LOG("Route from fallback to radio\n");
-        		uip_next_if = IF_RADIO;
+        		uip_next_if = UIP_INTERFACE_0_ID;
         	}
         	if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr, uip_next_if))
         	{
         		UIP_LOG("On link\n");
         	    nexthop = &UIP_IP_BUF->destipaddr;
-        	    uip_last_interface_active=uip_next_if;
+        	    uip_active_interface=uip_next_if;
         	}
         	else
         	{
@@ -620,9 +613,14 @@ tcpip_ipv6_output(void)
         	    {
         	    	UIP_LOG("Routed\n");
         	    	nexthop = &locrt->nexthop;
-        	    	uip_last_interface_active=uip_next_if;
+        	    	uip_active_interface=uip_next_if;
         	    }
         	}
+#else
+            PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
+            uip_len = 0;
+            return;
+#endif /* UIP_DS6_IF_NB>1 */
         }
       } else {
 	nexthop = &locrt->nexthop;
@@ -635,10 +633,10 @@ tcpip_ipv6_output(void)
       return;
     }
 #endif /* UIP_CONF_IPV6_RPL */
-    if((nbr = uip_ds6_nbr_lookup(nexthop, uip_last_interface_active)) == NULL) {
+    if((nbr = uip_ds6_nbr_lookup(nexthop, uip_active_interface)) == NULL) {
       //      printf("add1 %d\n", nexthop->u8[15]);
-      if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE,uip_last_interface_active)) == NULL) {
-                printf("add n %d\n",uip_last_interface_active);
+      if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE,uip_active_interface)) == NULL) {
+                printf("add n %d\n",uip_active_interface);
         uip_len = 0;
         return;
       } else {
@@ -655,13 +653,13 @@ tcpip_ipv6_output(void)
        * address SHOULD be placed in the IP Source Address of the outgoing
        * solicitation.  Otherwise, any one of the addresses assigned to the
        * interface should be used."*/
-       if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr,uip_last_interface_active)){
-          uip_nd6_ns_output(&UIP_IP_BUF->srcipaddr, NULL, &nbr->ipaddr, uip_last_interface_active);
+       if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr,uip_active_interface)){
+          uip_nd6_ns_output(&UIP_IP_BUF->srcipaddr, NULL, &nbr->ipaddr, uip_active_interface);
         } else {
-          uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr, uip_last_interface_active);
+          uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr, uip_active_interface);
         }
 
-        stimer_set(&(nbr->sendns), uip_ds6_if[uip_last_interface_active].retrans_timer / 1000);
+        stimer_set(&(nbr->sendns), uip_ds6_if[uip_active_interface].retrans_timer / 1000);
         nbr->nscount = 1;
       }
     } else {
@@ -688,9 +686,9 @@ tcpip_ipv6_output(void)
       }
       
       stimer_set(&(nbr->sendns),
-                uip_ds6_if[uip_last_interface_active].retrans_timer / 1000);
+                uip_ds6_if[uip_active_interface].retrans_timer / 1000);
 
-      tcpip_output(uip_last_interface_active,&(nbr->lladdr));
+      tcpip_output(uip_active_interface,&(nbr->lladdr));
 
 #if UIP_CONF_IPV6_QUEUE_PKT
       /*
@@ -703,7 +701,7 @@ tcpip_ipv6_output(void)
         uip_len = uip_packetqueue_buflen(&nbr->packethandle);
         memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
         uip_packetqueue_free(&nbr->packethandle);
-        tcpip_output(uip_last_interface_active, &(nbr->lladdr));
+        tcpip_output(uip_active_interface, &(nbr->lladdr));
       }
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
 
@@ -712,7 +710,7 @@ tcpip_ipv6_output(void)
     }
   }
   /* Multicast IP destination address. */
-  tcpip_output(uip_last_interface_active,NULL);
+  tcpip_output(uip_active_interface,NULL);
   uip_len = 0;
   uip_ext_len = 0;
 }

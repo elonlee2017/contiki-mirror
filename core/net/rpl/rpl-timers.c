@@ -71,7 +71,7 @@ handle_periodic_timer(void *ptr)
   next_dis++;
   if(rpl_get_any_dag() == NULL && next_dis >= RPL_DIS_INTERVAL) {
     next_dis = 0;
-    uip_last_interface_active = IF_RADIO;
+    uip_active_interface = IF_RADIO;
     dis_output(NULL);
   }
 #endif
@@ -148,7 +148,7 @@ handle_dio_timer(void *ptr)
 #if RPL_CONF_STATS
       instance->dio_totsend++;
 #endif /* RPL_CONF_STATS */
-      uip_last_interface_active = IF_RADIO;
+      uip_active_interface = IF_RADIO;
       dio_output(instance, NULL);
     } else {
       PRINTF("RPL: Supressing DIO transmission (%d >= %d)\n",
@@ -210,7 +210,7 @@ handle_dao_timer(void *ptr)
   if(instance->current_dag->preferred_parent != NULL) {
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
     /* Set the route lifetime to the default value. */
-    uip_last_interface_active = IF_RADIO;
+    uip_active_interface = IF_RADIO;
     dao_output(instance->current_dag->preferred_parent, instance->default_lifetime);
   } else {
     PRINTF("RPL: No suitable DAO parent\n");

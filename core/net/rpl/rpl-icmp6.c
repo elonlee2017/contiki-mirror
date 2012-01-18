@@ -688,7 +688,7 @@ dao_input(void)
                      ICMP6_RPL, RPL_CODE_DAO, buffer_length, IF_RADIO);
     }
     if(flags & RPL_DAO_K_FLAG) {
-    	uip_last_interface_active = IF_RADIO;
+    	uip_active_interface = IF_RADIO;
       dao_ack_output(dag, &dao_sender_addr, sequence);
     }
   }

@@ -154,10 +154,12 @@
 #define UIP_CONF_DS6_ROUTE_INFO_NBU 1
 
 /* multiple intrfaces configuration*/
-#define UIP_CONF_DS6_IF_NBU       2
-#define UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_0 8
+#define UIP_CONF_DS6_IF_NBU       2                       //number of interfaces
+#define IF_RADIO UIP_INTERFACE_0_ID                       //interface 0 assignment - radio
+#define UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_0 8       //link-layer address length of interface 0
 #if UIP_CONF_DS6_IF_NBU > 1
-#define UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_1 6
+#define IF_FALLBACK UIP_INTERFACE_1_ID                    //interface 1 assignment - fallback
+#define UIP_LINK_LAYER_ADDRESS_LENGTH_INTERFACE_1 6       //link-layer address length of interface 1
 #endif
 
 #define UIP_CONF_UDP_CHECKSUMS   1
