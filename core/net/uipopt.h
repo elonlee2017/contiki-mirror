@@ -386,7 +386,7 @@
 #ifdef UIP_CONF_TCP_MSS
 #define UIP_TCP_MSS (UIP_CONF_TCP_MSS)
 #else
-#define UIP_TCP_MSS     (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
+#define UIP_TCP_MSS     (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN - 8)
 #endif
 
 /**

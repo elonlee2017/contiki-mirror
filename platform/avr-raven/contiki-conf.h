@@ -192,7 +192,7 @@ unsigned long clock_seconds(void);
 #define UIP_CONF_IPV6_REASSEMBLY 0
 
 #define UIP_CONF_UDP_CHECKSUMS   1
-#define UIP_CONF_TCP_SPLIT       1
+#define UIP_CONF_TCP_SPLIT       0
 #define UIP_CONF_DHCP_LIGHT      1
 
 #if 1 /* No radio cycling */

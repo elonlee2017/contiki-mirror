@@ -20,6 +20,8 @@
 #define PRINTLLADDR(addr)
 #endif
 
+#if !UIP_CONF_IPV6_RPL
+
 #include "contiki-net.h"
 #include "node-id.h"
 
@@ -153,3 +155,5 @@ void configure_routing(void) {
     }
   }
 }
+
+#endif /*!UIP_CONF_IPV6_RPL*/

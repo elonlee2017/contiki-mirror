@@ -12,6 +12,8 @@ endif
 WITH_UIP6=1
 # for some platforms
 UIP_CONF_IPV6=1
+# for avr-raven
+WITH_RPL=1
 
 # variable for this Makefile
 # configure CoAP implementation (3|6|7)

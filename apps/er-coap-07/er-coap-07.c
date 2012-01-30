@@ -267,7 +267,7 @@ void
 coap_init_connection(uint16_t port)
 {
   /* new connection with remote host */
-  udp_conn = udp_new(NULL, 0, NULL);
+  udp_conn = udp_new(NULL, 0, NULL, IF_RADIO);
   udp_bind(udp_conn, port);
   PRINTF("Listening on port %u\n", uip_ntohs(udp_conn->lport));
 
