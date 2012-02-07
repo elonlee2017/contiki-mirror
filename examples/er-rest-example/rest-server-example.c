@@ -53,6 +53,7 @@
 #define REST_RES_TOGGLE 1
 #define REST_RES_LIGHT 1
 #define REST_RES_BATTERY 0
+#define REST_RES_TEMP 1
 
 
 
@@ -79,7 +80,10 @@
 #if defined (PLATFORM_HAS_SHT11)
 #include "dev/sht11-sensor.h"
 #endif
-
+#if defined (PLATFORM_HAS_TEMP)
+//extern char sensor_temp[14];
+#include "dev/temp-sensor.h"
+#endif
 
 /* For CoAP-specific example: not required for normal RESTful Web service. */
 #if WITH_COAP == 3
@@ -528,6 +532,60 @@ light_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred
 }
 #endif /* PLATFORM_HAS_LIGHT */
 
+#if defined (PLATFORM_HAS_TEMP) && REST_RES_TEMP
+/* A simple getter example. Returns the reading from AVR Raven temp sensor*/
+PERIODIC_RESOURCE(temp, METHOD_GET, "sensors/temp", "title=\"Temperature sensor\";rt=\"TempSensor\"", 5*CLOCK_SECOND);
+void
+temp_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  uint16_t *accept = NULL;
+  int num = REST.get_header_accept(request, &accept);
+
+  if ((num==0) || (num && accept[0]==REST.type.TEXT_PLAIN))
+  {
+    REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+    snprintf(buffer, REST_MAX_CHUNK_SIZE, "%s;", sensor_temp);
+
+    REST.set_response_payload(response, (uint8_t *)buffer, strlen(buffer));
+  }
+/*  else if (num && (accept[0]==REST.type.APPLICATION_XML))
+  {
+    REST.set_header_content_type(response, REST.type.APPLICATION_XML);
+    snprintf(buffer, REST_MAX_CHUNK_SIZE, "<light photosynthetic=\"%u\" solar=\"%u\"/>", light_photosynthetic, light_solar);
+
+    REST.set_response_payload(response, buffer, strlen(buffer));
+  }
+  else if (num && (accept[0]==REST.type.APPLICATION_JSON))
+  {
+    REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
+    snprintf(buffer, REST_MAX_CHUNK_SIZE, "{'light':{'photosynthetic':%u,'solar':%u}}", light_photosynthetic, light_solar);
+
+    REST.set_response_payload(response, buffer, strlen(buffer));
+  }*/
+  else
+  {
+    REST.set_response_status(response, REST.status.UNSUPPORTED_MADIA_TYPE);
+    REST.set_response_payload(response, (uint8_t *)"Supporting content-types text/plain", 35);
+  }
+}
+
+int
+temp_periodic_handler(resource_t *r)
+{
+  static uint32_t periodic_i = 0;
+  static char content[16];
+
+  PRINTF("TICK /%s\n", r->url);
+  periodic_i = periodic_i + 1;
+
+  /* Notify the registered observers with the given message type, observe option, and payload. */
+  REST.notify_subscribers(r->url, 1, periodic_i, (uint8_t *)content, snprintf(content, sizeof(content),  "%s;", sensor_temp));
+  /*                              |-> implementation-specific, e.g. CoAP: 1=CON and 0=NON notification */
+
+  return 1;
+}
+#endif /* PLATFORM_HAS_TEMP */
+
 #if defined (PLATFORM_HAS_BATTERY) && REST_RES_BATTERY
 /* A simple getter example. Returns the reading from light sensor with a simple etag */
 RESOURCE(battery, METHOD_GET, "sensors/battery", "title=\"Battery status\";rt=\"Battery\"");
@@ -619,6 +677,9 @@ PROCESS_THREAD(rest_server_example, ev, data)
 #if defined (PLATFORM_HAS_LIGHT) && REST_RES_LIGHT
   SENSORS_ACTIVATE(light_sensor);
   rest_activate_resource(&resource_light);
+#endif
+#if defined (PLATFORM_HAS_TEMP) && REST_RES_TEMP
+  rest_activate_periodic_resource(&periodic_resource_temp);
 #endif
 #if defined (PLATFORM_HAS_BATTERY) && REST_RES_BATTERY
   SENSORS_ACTIVATE(battery_sensor);

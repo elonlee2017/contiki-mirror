@@ -56,7 +56,10 @@ APPS += rest-http-engine
 endif
 
 APPS += erbium
-
+ifeq ($(TARGET), avr-raven)
+${info INFO: avr-raven - compiling with LCD interface}
+APPS += raven-lcd-interface
+endif
 
 include $(CONTIKI)/Makefile.include
 

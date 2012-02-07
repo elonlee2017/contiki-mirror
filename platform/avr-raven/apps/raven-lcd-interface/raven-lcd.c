@@ -70,6 +70,17 @@
 #include "httpd-cgi.h"
 #endif
 
+/*
+ * Checking if build contains CoAP. If yes then temperature variable is
+ * defined (for CoAP resource). To be more correct REST_RES_TEMP flag
+ * should be used, but it is defined in rest-server-example.c file
+ * and not visible here.
+ */
+
+#if WITH_COAP
+char sensor_temp[14]="Not Available";
+#endif
+
 #include "raven-lcd.h"
 
 #include <string.h>
@@ -312,6 +323,12 @@ raven_gui_loop(process_event_t ev, process_data_t data)
                 /* Set temperature string in web server */
                 web_set_temp((char *)cmd.frame);
 #endif
+
+#if WITH_COAP
+                /* Set temperature string in CoAP temp resource */
+                strcpy(sensor_temp, (char *)cmd.frame);
+              //  printf_P(PSTR("got temp"));
+#endif
                 break;
             case SEND_ADC2:
 #if AVR_WEBSERVER
@@ -464,6 +481,8 @@ char buf[sizeof(eemem_server_name)+1];
     raven_lcd_show_text(buf);  //must fit in all the buffers or it will be truncated!
 }
 #endif
+
+
 /*---------------------------------------------------------------------------*/
 PROCESS(raven_lcd_process, "Raven LCD interface process");
 PROCESS_THREAD(raven_lcd_process, ev, data)
@@ -473,6 +492,8 @@ PROCESS_THREAD(raven_lcd_process, ev, data)
 
 #if AVR_WEBSERVER
   lcd_show_servername();
+#elif WITH_COAP
+  raven_lcd_show_text("coap"); //webserver name has priority over coap
 #endif
 
   /* Get ICMP6 callbacks from uip6 stack, perform 3290p action on pings, responses, etc. */

@@ -129,6 +129,7 @@ unsigned long clock_seconds(void);
 #define RF230_MAX_TX_POWER 15
 #define RF230_MIN_RX_POWER 30
  */
+
   /* The rf231 and atmega128rfa1 can use an rssi threshold for triggering rx_busy that saves 0.5ma in rx mode */
 /* 1 - 15 maps into -90 to -48 dBm; the register is written with RF230_MIN_RX_POWER/6 + 1. Undefine for -100dBm sensitivity */
 //#define RF230_MIN_RX_POWER        0
@@ -354,6 +355,8 @@ unsigned long clock_seconds(void);
 
 #define CCIF
 #define CLIF
+
+#define PLATFORM_HAS_TEMP 1
 
 /* include the project config */
 /* PROJECT_CONF_H might be defined in the project Makefile */
