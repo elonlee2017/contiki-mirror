@@ -76,10 +76,10 @@ print_local_addresses(void)
 
   PRINTF("Server IPv6 addresses: ");
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
-    state = uip_ds6_if.addr_list[i].state;
-    if(uip_ds6_if.addr_list[i].isused &&
+	  state = uip_ds6_if[IF_RADIO].addr_list[i].state;
+    if(uip_ds6_if[IF_RADIO].addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
+      PRINT6ADDR(&uip_ds6_if[IF_RADIO].addr_list[i].ipaddr);
       PRINTF("\n");
     }
   }
@@ -96,13 +96,13 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
 #if UIP_CONF_ROUTER
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr, IF_RADIO);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF,IF_RADIO);
 #endif /* UIP_CONF_ROUTER */
 
   print_local_addresses();
 
-  server_conn = udp_new(NULL, UIP_HTONS(3001), NULL);
+  server_conn = udp_new(NULL, UIP_HTONS(3001), NULL,IF_RADIO);
   udp_bind(server_conn, UIP_HTONS(3000));
 
   while(1) {

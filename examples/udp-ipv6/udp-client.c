@@ -81,10 +81,10 @@ print_local_addresses(void)
 
   PRINTF("Client IPv6 addresses: ");
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
-    state = uip_ds6_if.addr_list[i].state;
-    if(uip_ds6_if.addr_list[i].isused &&
+    state = uip_ds6_if[IF_RADIO].addr_list[i].state;
+    if(uip_ds6_if[IF_RADIO].addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
+      PRINT6ADDR(&uip_ds6_if[IF_RADIO].addr_list[i].ipaddr);
       PRINTF("\n");
     }
   }
@@ -97,8 +97,8 @@ set_global_address(void)
   uip_ipaddr_t ipaddr;
 
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr,IF_RADIO);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF,IF_RADIO);
 }
 #endif /* UIP_CONF_ROUTER */
 /*---------------------------------------------------------------------------*/
@@ -135,7 +135,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
   set_connection_address(&ipaddr);
 
   /* new connection with remote host */
-  client_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL);
+  client_conn = udp_new(&ipaddr, UIP_HTONS(3000), NULL,IF_RADIO);
   udp_bind(client_conn, UIP_HTONS(3001));
 
   PRINTF("Created a connection with the server ");
